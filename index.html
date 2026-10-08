@@ -446,6 +446,7 @@ function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selecte
   const T = { next:['다음','Next'], back:['이전','Back'], skip:['건너뛰기','Skip'], submit:['제출하기','Submit'] };
   const DEMO = !SCRIPT_URL || SCRIPT_URL.indexOf('__') === 0;
 
+  const logoImg = new Image();
   if (params.has('qr')) { renderQRAdmin(); return; }
 
   const staff = STAFF.find(s => s.code === params.get('s')) || null;
@@ -752,7 +753,6 @@ function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selecte
     s.onerror = () => { document.getElementById('grid').innerHTML = '<div class="note warn">QR 도구를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.</div>'; };
     document.head.appendChild(s);
   }
-  const logoImg = new Image();
   function makeCard(st, url) {
     const W = 1080, H = 1440, c = document.createElement('canvas'); c.width = W; c.height = H;
     const g = c.getContext('2d');
