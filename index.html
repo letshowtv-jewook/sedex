@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0F2A5C">
+<meta name="robots" content="noindex,nofollow">
+<title>삼전순약 | SEDEX 2026 Survey</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+  :root{
+    --navy:#0F2A5C; --accent:#1E5BD8; --accent-soft:#E8EFFD;
+    --bg:#F3F5F9; --card:#FFFFFF; --text:#101828; --en:#475467; --muted:#5B6576;
+    --line:#D5DBE5; --error:#D92D20; --ok:#12B76A;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:"Pretendard Variable",Pretendard,-apple-system,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.4;min-height:100vh;min-height:100dvh;font-size:17px;
+    word-break:keep-all;overflow-wrap:break-word;
+  }
+  .topbar{
+    background:var(--navy);color:#fff;padding:calc(env(safe-area-inset-top) + 10px) 18px 10px;
+    display:flex;justify-content:space-between;align-items:center;font-size:15px;
+  }
+  .topbar b{font-weight:700}
+  .topbar span{opacity:.8;font-size:14px}
+  .wrap{max-width:520px;margin:0 auto;padding:14px 18px 92px}
+  .screen{animation:in .25s ease}
+  @keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  /* 한·영 표기: 한국어는 크게, 영어는 바로 아래 조금 작게 */
+  .en{display:block;color:var(--en);font-weight:500}
+  h1{font-size:24px;line-height:1.3;margin:2px 0 10px;letter-spacing:-.5px}
+  h1 .en{font-size:17px;margin-top:2px;letter-spacing:0}
+  h2{font-size:22px;line-height:1.32;margin:8px 0 12px;letter-spacing:-.4px;font-weight:800}
+  h2 .en{font-size:16px;margin-top:3px;letter-spacing:0;font-weight:500}
+  .desc{color:var(--muted);margin:-4px 0 12px;font-size:15px}
+  .chip{display:inline-block;background:var(--accent-soft);color:var(--accent);font-size:14px;font-weight:700;padding:4px 11px;border-radius:999px}
+
+  .staff{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 14px;margin-bottom:10px;font-size:16px}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--ok);flex:none}
+  .field{margin-bottom:10px}
+  .field label{display:block;font-size:16px;font-weight:700;margin-bottom:5px}
+  .field label .en{display:inline;font-size:14px;margin-left:6px}
+  .field input,.field textarea,.other input{
+    width:100%;font:inherit;font-size:18px;padding:11px 14px;border:2px solid var(--line);
+    border-radius:12px;background:var(--card);color:var(--text);outline:none
+  }
+  .field input::placeholder,.field textarea::placeholder,.other input::placeholder{color:#98A2B3}
+  .field textarea{min-height:150px;resize:vertical}
+  .field input:focus,.field textarea:focus,.other input:focus{border-color:var(--accent)}
+  .field.has-error input{border-color:var(--error)}
+  .err{color:var(--error);font-size:14px;font-weight:600;margin-top:4px}
+  .err:empty{display:none}
+  .consent{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:10px 12px}
+  .consent.has-error{border-color:var(--error)}
+  .check{display:flex;gap:12px;align-items:flex-start;font-size:16px;font-weight:700;cursor:pointer}
+  .check .en{font-size:13.5px;margin-top:2px}
+  .check input{width:26px;height:26px;margin:0;flex:none;accent-color:var(--accent)}
+  details{margin-top:8px;font-size:14px;color:var(--muted)}
+  summary{cursor:pointer;color:var(--accent);font-weight:700}
+  details table{width:100%;border-collapse:collapse;margin-top:8px}
+  details th,details td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  details th{width:30%;background:var(--bg);color:var(--text)}
+
+  .hint{font-size:14px;color:var(--muted);margin:-6px 0 10px;font-weight:600}
+  .hint.warn{color:var(--error)}
+  .options{display:flex;flex-direction:column;gap:8px}
+  .opt{
+    display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;
+    padding:11px 14px;border:2px solid var(--line);border-radius:14px;background:var(--card);color:var(--text);
+    cursor:pointer;min-height:58px;transition:border-color .15s,background .15s
+  }
+  .opt .ko{font-size:18px;font-weight:600;line-height:1.3}
+  .opt .en{font-size:14.5px;line-height:1.3;margin-top:1px}
+  .opt .txt{display:flex;flex-direction:column;min-width:0}
+  .opt .mark{width:24px;height:24px;border:2px solid #98A2B3;flex:none;display:grid;place-items:center;background:#fff}
+  .opt[data-kind=single] .mark{border-radius:50%}
+  .opt[data-kind=multi] .mark{border-radius:6px}
+  .opt.on{border-color:var(--accent);background:var(--accent-soft)}
+  .opt.on .mark{border-color:var(--accent);background:var(--accent)}
+  .opt.on .mark::after{content:"";width:6px;height:11px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+  .options.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .grid2 .opt{padding:9px 10px;gap:8px;min-height:62px;align-items:flex-start;border-radius:12px}
+  .grid2 .opt .mark{width:21px;height:21px;margin-top:2px}
+  .grid2 .opt .ko{font-size:16px}
+  .grid2 .opt .en{font-size:13px}
+  .other{margin-top:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chipbtn{font:inherit;font-size:17px;font-weight:600;padding:10px 16px;border-radius:999px;border:2px solid var(--line);background:var(--card);color:var(--text);cursor:pointer;line-height:1.2}
+  .chipbtn .en{display:inline;font-size:14px;margin-left:4px}
+  .chipbtn.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+  .rowcard{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px 12px 2px}
+  .rowgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 8px}
+  .rowgrid .field{margin-bottom:10px}
+  .rowgrid .field label{font-size:14.5px;margin-bottom:4px}
+  .rowgrid .field label .en{display:block;margin:0;font-size:12.5px}
+  .rowgrid .field input{font-size:17px;padding:10px 11px}
+
+  .bar{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(to top,var(--bg) 75%,rgba(243,245,249,0));padding:16px 18px calc(env(safe-area-inset-bottom) + 14px)}
+  .bar .in{max-width:520px;margin:0 auto;display:flex;gap:10px}
+  .btn{font:inherit;font-size:19px;font-weight:800;border:0;border-radius:14px;padding:15px 10px;cursor:pointer;line-height:1.1}
+  .btn .en{display:inline;font-size:15px;font-weight:600;color:inherit;opacity:.8;margin-left:5px}
+  .btn:active{transform:scale(.98)}
+  .btn.primary{flex:1;background:var(--navy);color:#fff}
+  .btn.primary:disabled{opacity:.35}
+  .btn.ghost{background:var(--card);color:var(--text);border:2px solid var(--line);min-width:108px}
+
+  .center{text-align:center;padding-top:36px}
+  .center .staff{justify-content:center}
+  .ok-icon{width:76px;height:76px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center;margin:0 auto 18px}
+  .ok-icon svg{width:38px;height:38px}
+  .lead{font-size:17px;color:var(--text);margin:0 0 6px}
+  .lead.en{font-size:15px;color:var(--en);margin-bottom:18px}
+  .spinner{width:46px;height:46px;border:4px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 18px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .badge{display:inline-block;margin-top:14px;font-size:13px;font-weight:700;color:#B54708;background:#FEF0C7;padding:4px 10px;border-radius:999px}
+
+  /* QR 관리 화면 */
+  .qr-wrap{max-width:1100px;margin:0 auto;padding:24px 20px 60px}
+  .qr-head{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:flex-end;margin-bottom:18px}
+  .qr-head h1{margin:0}
+  .note{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:15px;color:var(--muted);margin-bottom:18px}
+  .note.warn{background:#FFFAEB;border-color:#FEDF89;color:#93370D}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+  .qcard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px}
+  .qcard img{width:100%;border-radius:10px;border:1px solid var(--line);display:block}
+  .qcard .row{display:flex;gap:6px}
+  .qcard a{flex:1;font-size:14px;font-weight:700;text-align:center;text-decoration:none;padding:10px 6px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)}
+  .qcard a.dl{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .btn.small{font-size:15px;padding:12px 16px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* =====================================================================
+   ★ 욱님이 직접 고칠 곳은 딱 한 군데: 아래 SCRIPT_URL 따옴표 안 ★
+   (구글 Apps Script 배포 후 받은 주소를 붙여넣기)
+   비어 있으면 '테스트 모드'로 동작해서 제출해도 저장되지 않습니다.
+   ===================================================================== */
+const SCRIPT_URL = '';
+
+
+/* ---------------- 이 아래는 Claude가 관리합니다 ----------------
+   화면 글자: label(한국어) + en(영어)
+   결과표에는 항상 한국어(label 또는 S/K 지정값)로 저장됩니다.  */
+const CONFIG = {
+  COMPANY: '삼전순약공업(주)',
+  COMPANY_EN: 'Samchun Pure Chemical',
+  EVENT: 'SEDEX 2026',
+  PRIVACY_S: {
+    who: '삼전순약공업(주)',
+    purpose: '전시회 상담 내용 확인, 제품·기술 자료 안내 및 후속 상담',
+    items: '회사명, 부서명, 성명, 직책, 연락처, E-mail',
+    period: '수집일로부터 1년 (목적 달성 시 즉시 파기)',
+    en: 'Samchun Pure Chemical collects your company, department, name, position, phone and e-mail to send product information and follow up on your inquiry. The data is kept for 1 year. You may refuse, but then you cannot take part in the survey.'
+  }
+};
+
+const STAFF = [
+  { code:'01', name:'윤성태', title:'상무' },
+  { code:'02', name:'최강욱', title:'수석' },
+  { code:'03', name:'허준',   title:'선임' },
+  { code:'04', name:'이재흥', title:'선임' },
+  { code:'05', name:'이제욱', title:'선임' },
+  { code:'06', name:'송우현', title:'선임' },
+  { code:'07', name:'김지윤', title:'선임' },
+  { code:'08', name:'이동현', title:'주임' },
+  { code:'09', name:'이민규', title:'주임' },
+  { code:'10', name:'지현승', title:'사원' },
+  { code:'11', name:'오하연', title:'사원' },
+  { code:'12', name:'강수진', title:'사원' },
+  { code:'13', name:'심태형', title:'사원' }
+];
+
+/* 고객 정보 — 삼전 결과표에만 저장 (간토 결과표에는 고객 정보를 넣지 않음) */
+const INFO_FIELDS = [
+  { id:'company',  label:'회사명', en:'Company',  required:true, S:'회사명', ac:'organization' },
+  { id:'name',     label:'성명',   en:'Name',     required:true, S:'성명', ac:'name' },
+  { id:'phone',    label:'연락처', en:'Phone',    required:true, S:'연락처', type:'tel' },
+  { id:'email',    label:'E-mail', en:'',         S:'E-mail', type:'email', placeholder:'name@company.com' },
+  { id:'dept',     label:'부서명', en:'Department', S:'부서명', placeholder:'예) 구매팀 / Purchasing' },
+  { id:'position', label:'직책',   en:'Position', S:'직책', placeholder:'예) 책임 / Manager' },
+  { id:'region',   label:'사업장 지역', en:'Country · Region', S:'사업장 지역', placeholder:'예) 경기 화성 / Korea' }
+];
+
+/* 문항 (한 화면에 하나씩)
+   S / K : 이 문항 답이 들어갈 삼전·간토 결과표 열 이름 (없으면 그 회사 결과표에는 안 들어감)
+   보기의 only:'S' 또는 only:'K' : 그 회사 결과표에만 기록
+   보기의 S:'..' 또는 K:'..' : 그 회사 원본 설문지 표현으로 바꿔서 기록 */
+const QUESTIONS = [
+  { id:'moreInfo', type:'form', category:['고객 정보','About you'],
+    title:['추가 정보를 알려 주세요','Additional information'],
+    desc:'아는 것만 적어 주세요 · Optional',
+    fields: INFO_FIELDS.filter(f => !f.required).map(f => Object.assign({}, f, { info:true, S:undefined })) },
+
+  { id:'type', type:'choice', multi:true, required:true, category:['고객 정보','About you'],
+    title:['회사 유형을 선택해 주세요','Type of company'],
+    S:'1. 회사 유형',
+    options:[
+      {label:'반도체 제조', en:'Semiconductor'}, {label:'화학소재 제조', en:'Chemical materials'},
+      {label:'장비 및 부품', en:'Equipment · Parts'}, {label:'패키징 및 테스트', en:'Packaging · Test'},
+      {label:'연구기관 및 대학', en:'Research · University'}, {label:'유통', en:'Distribution'},
+      {label:'기타', en:'Other', other:true}
+    ]},
+
+  { id:'role', type:'choice', multi:true, required:true, category:['담당 업무','Your role'],
+    title:['담당 업무를 선택해 주세요','Your job function'],
+    S:'2. 담당 업무', K:'2. 담당 업무',
+    options:[
+      {label:'연구개발 (R&D)', en:'R&D', S:'연구개발'},
+      {label:'분석·품질관리', en:'Analysis · QC/QA', S:'분석·품질관리(QC/QA)', K:'분석·평가 (QC, QA 포함)'},
+      {label:'소재 합성·생산', en:'Synthesis · Production', K:'제조·공정 기술'},
+      {label:'공정·장비 기술', en:'Process · Equipment', K:'제조·공정 기술'},
+      {label:'구매·조달', en:'Purchasing', K:'조달·구매'},
+      {label:'클린룸·시설관리', en:'Cleanroom · Facility', K:'기타: 클린룸·시설관리'},
+      {label:'기타', en:'Other', other:true}
+    ]},
+
+  { id:'purpose', type:'choice', multi:true, required:true, category:['사용 목적','Purpose'],
+    title:['주요 사용 목적을 선택해 주세요','Main purpose of use'],
+    S:'2. 주요 사용 목적',
+    options:[
+      {label:'반도체 공정 직접 사용', en:'Semiconductor process'},
+      {label:'식각액·세정액 제조 원료', en:'Etchant · Cleaner raw material'},
+      {label:'소재 합성·배합', en:'Synthesis · Formulation'},
+      {label:'분석·품질관리', en:'Analysis · QC'},
+      {label:'클린룸·장비 세정', en:'Cleanroom · Equipment cleaning'},
+      {label:'기타', en:'Other', other:true}
+    ]},
+
+  { id:'product', type:'choice', multi:true, category:['관심 제품','Products'],
+    title:['관심 있는 제품을 선택해 주세요','Products of interest'],
+    S:'3. 관심 제품',
+    options:[
+      {key:'solvent', label:'고순도 용제 EL·ELH Grade', ko:'고순도 용제 (EL·ELH)', en:'High-purity solvents · IPA, NMP'},
+      {key:'etch',    label:'식각·불화계·산·알칼리', ko:'식각·불화계·산·알칼리', en:'Etchants · Acids · BOE, HF'},
+      {key:'clean',   label:'클린룸 세정제', en:'Cleanroom cleaners · IPA, H₂O₂'},
+      {label:'HPLC·LC-MS 분석용 용매', ko:'HPLC·LC-MS 용매', en:'HPLC · LC-MS solvents'},
+      {key:'std',     label:'적정용 표준용액 및 pH 완충표준액', ko:'표준용액·pH 표준액', en:'Standard · pH buffer solutions'},
+      {label:'고체·액상 원료 및 공업용 용제 Bulk', ko:'원료·공업용 용제 (Bulk)', en:'Bulk raw materials · DMSO, MEK'}
+    ]},
+
+  { id:'product2', type:'choice', multi:true, category:['관심 제품','Products'],
+    title:['아래 제품 중에도 관심 있는 것이 있나요?','Any of these products?'],
+    S:'3. 관심 제품', K:'3. 관심 제품',
+    options:[
+      {only:'K', label:'Ultrapur / Ultrapur-100', en:'Ultra-pure reagents'},
+      {only:'K', label:'탈수 용매', en:'Dehydrated solvents'},
+      {only:'K', label:'CRMs (인증 표준물질)', ko:'인증 표준물질 (CRMs)', en:'Reference materials'},
+      {only:'K', label:'고순도 금속 화합물', en:'Metal compounds'},
+      {only:'K', label:'고순도 용매', en:'High-purity solvents'},
+      {only:'K', label:'고순도 알칼리', en:'Alkalis · KOH, NaOH'},
+      {only:'K', label:'고순도 유기산', en:'Organic acids'},
+      {label:'기타 제품', en:'Other', other:true, S:'기타', K:'기타'}
+    ]},
+
+  { id:'status', type:'choice', multi:true, required:true, category:['사용 현황','Current use'],
+    title:['현재 사용·검토 현황을 선택해 주세요','Current status'],
+    S:'4. 사용·검토 현황', K:'4. 사용 현황',
+    options:[
+      {label:'현재 사용 중', en:'Currently using'},
+      {label:'대체 제조사 검토 중', en:'Looking for an alternative supplier'},
+      {label:'신규 도입 검토 중', en:'Considering a new product'},
+      {label:'정보 수집 단계', en:'Just gathering information'}
+    ]},
+
+  { id:'brand', type:'choice', multi:true, category:['사용 현황','Current use'],
+    title:['현재 사용 중인 브랜드를 선택해 주세요','Brands you currently use'],
+    S:'4. 현재 사용 제조사', K:'5. 현재 사용 중인 시약 브랜드',
+    options:[
+      {label:'Samchun (삼전순약)', ko:'Samchun', en:'삼전순약'}, {label:'Merck / Sigma-Aldrich', ko:'Merck', en:'Sigma-Aldrich'},
+      {label:'Thermo Fisher'}, {label:'Honeywell'}, {label:'Kanto Chemical'},
+      {label:'Tama Pure Chemical', ko:'Tama'}, {label:'Fujifilm Wako', ko:'Fujifilm Wako'},
+      {label:'기타', en:'Other', other:true}
+    ]},
+
+  { id:'curProductQ', type:'form', category:['사용 현황','Current use'],
+    title:['현재 사용 중인 제품명과 등급을 알려 주세요','Product name and grade you use'],
+    showIf: () => state.answers.brand.selected.length > 0,
+    fields:[ {id:'curProduct', label:'제품명·등급·농도', en:'Product · Grade', placeholder:'예) IPA EL Grade', S:'4. 현재 사용 제품명·등급·농도'} ]},
+
+  { id:'scale', type:'choice', category:['구매 수요','Demand'],
+    title:['사용 규모를 선택해 주세요','Scale of use'],
+    S:'5. 사용 규모',
+    options:[ {label:'연구용 소량', en:'Small amount for R&D'}, {label:'파일럿 평가', en:'Pilot evaluation'}, {label:'양산 사용', en:'Mass production'}, {label:'미정', en:'Not decided'} ]},
+
+  { id:'demand', type:'rows', category:['구매 수요','Demand'],
+    title:['필요한 제품과 수량을 적어 주세요','Product and quantity you need'],
+    desc:'모르는 칸은 비워 두세요 · Leave blank if unknown',
+    S:'5. 제품별 수요',
+    columns:[
+      {label:'제품명 / CAS', en:'Product / CAS No.', placeholder:'예) IPA'},
+      {label:'등급·농도', en:'Grade', placeholder:'예) EL'},
+      {label:'월 사용량', en:'Monthly volume', placeholder:'예) 200 L'},
+      {label:'포장·용량', en:'Packaging', placeholder:'예) 말통 / 20L can'}
+    ]},
+
+  { id:'demand2', type:'rows', category:['구매 수요','Demand'],
+    title:['다른 제품도 있으면 적어 주세요','Any other product?'],
+    desc:'없으면 건너뛰세요 · Skip if none',
+    showIf: () => state.answers.demand.rows.some(r => r.some(c => c.trim())),
+    S:'5. 제품별 수요',
+    columns:[
+      {label:'제품명 / CAS', en:'Product / CAS No.', placeholder:'예) NMP'},
+      {label:'등급·농도', en:'Grade', placeholder:'예) ELH'},
+      {label:'월 사용량', en:'Monthly volume', placeholder:'예) 50 kg'},
+      {label:'포장·용량', en:'Packaging', placeholder:'예) 드럼 / Drum'}
+    ]},
+
+  { id:'timing', type:'choice', category:['구매 수요','Demand'],
+    title:['평가·도입 예정 시점을 선택해 주세요','When do you plan to evaluate or buy?'],
+    S:'5. 평가·도입 시점',
+    options:[ {label:'1개월 이내', en:'Within 1 month'}, {label:'1~3개월', en:'1–3 months'}, {label:'3~6개월', en:'3–6 months'}, {label:'6개월 이후', en:'After 6 months'}, {label:'미정', en:'Not decided'} ]},
+
+  { id:'require', type:'choice', multi:true, max:3, maxWith:'require2', category:['요구 사항','Requirements'],
+    title:['가장 중요한 품질 조건은 무엇인가요?','Most important quality factors'],
+    hintText:'다음 화면과 합쳐 최대 3개 · Up to 3 in total',
+    S:'6. 중요 조건 (최대 3개)', K:'6. 고순도 시약 요구 사항',
+    options:[
+      {only:'S', label:'제품 규격 (등급·농도)', ko:'제품 규격', en:'Grade · Concentration'},
+      {label:'금속 불순물 수준', ko:'금속 불순물', en:'Metal impurities', K:'금속 불순물 수준 (ppm / ppb / ppt)'},
+      {only:'S', label:'수분 함량', en:'Moisture'},
+      {only:'S', label:'입자·증발잔류물', en:'Particles · Residue'},
+      {label:'로트 간 일관성', en:'Lot-to-lot consistency', K:'로트 간 안정성'},
+      {label:'COA 기재 항목', en:'COA items'}
+    ]},
+
+  { id:'require2', type:'choice', multi:true, max:3, maxWith:'require', category:['요구 사항','Requirements'],
+    title:['공급 조건 중 중요한 것이 있나요?','Important supply factors'],
+    hintText:'앞 화면과 합쳐 최대 3개 · Up to 3 in total',
+    S:'6. 중요 조건 (최대 3개)', K:'6. 고순도 시약 요구 사항',
+    options:[
+      {label:'안정적 공급', en:'Stable supply'}, {label:'가격', en:'Price'},
+      {label:'단납기', en:'Short lead time'}, {label:'기술 지원', en:'Technical support'},
+      {label:'맞춤(커스텀) 대응', en:'Customization', S:'기타: 맞춤(커스텀) 대응'},
+      {label:'기타', en:'Other', other:true}
+    ]},
+
+  { id:'specHigh', type:'form', category:['상세 규격','Specifications'],
+    title:['고순도 제품에 필요한 규격을 적어 주세요','Specs for high-purity products'],
+    desc:'해당 없으면 건너뛰세요 · Skip if none',
+    showIf: () => hasAny('product', ['solvent', 'etch']),
+    fields:[
+      {id:'metal', label:'금속종 및 한도', en:'Metals · Limits', placeholder:'예) Fe 1 ppb 이하', S:'6. 금속종 및 한도'},
+      {id:'water', label:'수분', en:'Moisture', placeholder:'예) 100 ppm 이하', S:'6. 수분'}
+    ]},
+
+  { id:'specClean', type:'form', category:['상세 규격','Specifications'],
+    title:['클린룸 세정제 조건을 알려 주세요','Cleanroom cleaner conditions'],
+    desc:'해당 없으면 건너뛰세요 · Skip if none',
+    showIf: () => hasAny('product', ['clean']),
+    fields:[
+      {id:'cleanConc', label:'농도 (%)', en:'Concentration', placeholder:'예) 70', S:'6. 클린룸 세정제 농도(%)'},
+      {id:'sterile', label:'멸균 여부', en:'Sterility', type:'chips', S:'6. 세정제 멸균 여부',
+        options:[ {v:'Sterile'}, {v:'Non-Sterile'}, {v:'별도 협의', en:'To discuss'} ]}
+    ]},
+
+  { id:'specStd', type:'form', category:['상세 규격','Specifications'],
+    title:['표준용액 조건을 알려 주세요','Standard solution conditions'],
+    desc:'해당 없으면 건너뛰세요 · Skip if none',
+    showIf: () => hasAny('product', ['std']),
+    fields:[
+      {id:'stdConc', label:'필요 농도', en:'Concentration', placeholder:'예) 0.1 mol/L', S:'6. 표준용액 농도'},
+      {id:'stdPh', label:'pH', en:'', placeholder:'예) 4.01 / 6.86', S:'6. 표준용액 pH'}
+    ]},
+
+  { id:'custom', type:'choice', multi:true, category:['맞춤 대응','Custom request'],
+    title:['필요한 맞춤 대응이 있나요?','Do you need any customization?'],
+    S:'7. 맞춤 대응 요청', K:'7. 특주품 관심 항목', kFlag:'7. 특주품 관심 여부',
+    options:[
+      {only:'K', label:'고순도화', en:'Higher purity'},
+      {label:'농도 조정', en:'Concentration'},
+      {only:'S', label:'혼합액·배합액', en:'Mixtures · Blends'},
+      {label:'포장·용량 변경', en:'Package · Volume', K:'용량 변경'},
+      {label:'특수 포장', en:'Special packaging'},
+      {label:'추가 분석·규격 협의', ko:'추가 분석·규격', en:'Extra analysis · Specs', K:'금속 불순물 추가 규격 대응'},
+      {only:'S', label:'대량·정기 공급', en:'Bulk · Regular supply'},
+      {label:'해당 없음', en:'None', none:true, only:'S'}
+    ]},
+
+  { id:'customTextQ', type:'form', category:['맞춤 대응','Custom request'],
+    title:['구체적인 요청 내용을 적어 주세요','Please describe your request'],
+    desc:'가능 여부는 상담 때 안내드립니다 · We will reply after review',
+    showIf: () => hasReal('custom'),
+    fields:[ {id:'customText', label:'요청 내용', en:'Request', placeholder:'예) IPA 20L 말통 소분', S:'7. 구체적 요청 내용'} ]},
+
+  { id:'follow', type:'choice', multi:true, required:true, category:['후속 조치','Follow-up'],
+    title:['원하시는 후속 조치를 선택해 주세요','What would you like next?'],
+    S:'8. 후속 조치', K:'8. 후속 조치 희망',
+    options:[
+      {label:'샘플 평가', en:'Sample'}, {label:'견적 요청', en:'Quotation'},
+      {label:'COA·규격서·SDS 요청', ko:'COA·규격서·SDS', en:'COA · Spec · SDS', K:'COA 요청'},
+      {label:'기술 상담 및 미팅', ko:'기술 상담·미팅', en:'Technical meeting', K:'온라인 미팅 (기술 협의)'},
+      {only:'S', label:'기존 제품 대체 검토', ko:'기존 제품 대체', en:'Replace current product'},
+      {only:'S', label:'대량·정기 공급 상담', ko:'대량·정기 공급', en:'Bulk · Regular supply'},
+      {label:'지금은 필요 없음', en:'Nothing for now', none:true, S:'없음', K:'없음'}
+    ]},
+
+  { id:'reqItemsQ', type:'form', category:['후속 조치','Follow-up'],
+    title:['요청하실 제품과 수량을 적어 주세요','Products and quantity requested'],
+    showIf: () => hasReal('follow'),
+    fields:[ {id:'reqItems', label:'제품·수량', en:'Product · Quantity', placeholder:'예) IPA EL 샘플 1L', S:'8. 샘플·견적 품목 및 필요량', K:'8. 요청 제품명·필요량'} ]},
+
+  { id:'contact', type:'choice', multi:true, category:['후속 조치','Follow-up'],
+    title:['연락받을 방법을 선택해 주세요','How should we contact you?'],
+    S:'8. 희망 연락 방법',
+    options:[ {label:'E-mail', ko:'이메일', en:'E-mail'}, {label:'전화', en:'Phone'}, {label:'온라인 미팅', en:'Online meeting'}, {label:'방문 상담', en:'Visit'} ]},
+
+  { id:'contactWhenQ', type:'form', category:['후속 조치','Follow-up'],
+    title:['연락받기 편한 시점을 알려 주세요','When is a good time?'],
+    fields:[ {id:'contactWhen', label:'희망 시점', en:'Preferred time', placeholder:'예) 10월 말 / End of Oct.', S:'8. 희망 연락 시점'} ]},
+
+  { id:'opinion', type:'text', category:['의견','Comments'],
+    title:['그 밖에 하실 말씀이 있으면 적어 주세요','Any other comments or questions'],
+    placeholder:'자유롭게 적어 주세요 · Feel free to write',
+    S:'기타 의견 및 문의', K:'의견 / 문의 사항' }
+];
+</script>
+
+<script>
+/* ---------------- 동작 코드 (수정 불필요) ---------------- */
+const state = {
+  step: 0, submitted: false, info: {}, consentS: false, answers: {},
+  sid: Date.now().toString(36) + Math.random().toString(36).slice(2, 8)
+};
+QUESTIONS.forEach(q => state.answers[q.id] = {
+  selected: [], other: '', text: '', fields: {}, rows: [q.columns ? q.columns.map(() => '') : []]
+});
+function hasReal(qid) {
+  const q = QUESTIONS.find(x => x.id === qid);
+  return state.answers[qid].selected.some(k => !q.options[k].none);
+}
+function hasAny(qid, keys) {
+  const q = QUESTIONS.find(x => x.id === qid);
+  return state.answers[qid].selected.some(k => keys.includes(q.options[k].key));
+}
+
+(function(){
+  const app = document.getElementById('app');
+  const params = new URLSearchParams(location.search);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const enSpan = en => en ? `<span class="en">${esc(en)}</span>` : '';
+  const DEMO = !SCRIPT_URL;
+  const T = {
+    next:['다음','Next'], back:['이전','Back'], skip:['건너뛰기','Skip'], submit:['제출하기','Submit'], start:['설문 시작','Start'],
+    multi:'여러 개 선택 가능 · Choose all that apply', other:'직접 입력 · Please specify'
+  };
+  const btnLabel = t => `${esc(t[0])}<span class="en">${esc(t[1])}</span>`;
+
+  if (params.has('qr')) { renderQRAdmin(); return; }
+
+  const staff = STAFF.find(s => s.code === params.get('s')) || null;
+  const fieldVisible = f => !f.showIf || f.showIf();
+  const qVisible = q => (!q.showIf || q.showIf()) && (q.type !== 'form' || q.fields.some(fieldVisible));
+  const visibleList = () => QUESTIONS.map((q, i) => i).filter(i => qVisible(QUESTIONS[i]));
+
+  history.replaceState({ step: 0 }, '');
+  window.addEventListener('popstate', e => {
+    if (state.submitted) { history.pushState({ step: -1 }, ''); return; }
+    let s = e.state && typeof e.state.step === 'number' ? e.state.step : 0;
+    while (s > 0 && !qVisible(QUESTIONS[s - 1])) s--;
+    go(s, false);
+  });
+
+  function go(step, push = true) {
+    state.step = step;
+    if (push) history.pushState({ step }, '');
+    window.scrollTo(0, 0);
+    if (step === 0) renderIntro(); else renderQuestion(step - 1);
+  }
+  function nextStep(fromIdx) {
+    const v = visibleList().filter(i => i > fromIdx);
+    return v.length ? v[0] + 1 : null;
+  }
+
+  function shell(inner, footer) {
+    app.innerHTML = `
+      <div class="topbar"><b>${esc(CONFIG.COMPANY)}</b><span>${esc(CONFIG.EVENT)}</span></div>
+      <main class="wrap"><section class="screen">${inner}</section></main>
+      ${footer ? `<div class="bar"><div class="in">${footer}</div></div>` : ''}`;
+  }
+
+  // 한국 번호(0으로 시작)는 자동으로 - 넣기, 해외 번호(+로 시작)는 그대로
+  function formatPhone(v) {
+    if (/^\s*\+/.test(v)) return v.replace(/[^\d+\s-]/g, '');
+    const d = v.replace(/\D/g, '').slice(0, 11);
+    if (d.startsWith('02')) {
+      if (d.length < 3) return d;
+      if (d.length < 6) return d.slice(0, 2) + '-' + d.slice(2);
+      if (d.length < 10) return d.slice(0, 2) + '-' + d.slice(2, 5) + '-' + d.slice(5);
+      return d.slice(0, 2) + '-' + d.slice(2, 6) + '-' + d.slice(6, 10);
+    }
+    if (d.length < 4) return d;
+    if (d.length < 8) return d.slice(0, 3) + '-' + d.slice(3);
+    if (d.length === 10) return d.slice(0, 3) + '-' + d.slice(3, 6) + '-' + d.slice(6);
+    return d.slice(0, 3) + '-' + d.slice(3, 7) + '-' + d.slice(7);
+  }
+
+  /* ----- 첫 화면 ----- */
+  function renderIntro() {
+    const P = CONFIG.PRIVACY_S, info = state.info;
+    const fieldHtml = f => `
+      <div class="field" id="f-${f.id}"><label for="in-${f.id}">${esc(f.label)}${enSpan(f.en)}</label>
+        <input id="in-${f.id}" ${f.type === 'tel' ? 'type="tel" inputmode="tel" placeholder="010-0000-0000 / +82 …"' : 'placeholder=""'}
+          ${f.ac ? `autocomplete="${f.ac}"` : ''} value="${esc(info[f.id] || '')}"><div class="err"></div></div>`;
+    shell(`
+      <h1>방문해 주셔서 감사합니다<span class="en">Thank you for visiting us</span></h1>
+      ${staff ? `<div class="staff"><span class="dot"></span><span>담당 · Contact <b>${esc(staff.name)} ${esc(staff.title)}</b></span></div>` : ''}
+      ${INFO_FIELDS.filter(f => f.required).map(fieldHtml).join('')}
+      <div class="consent" id="f-consentS">
+        <label class="check"><input type="checkbox" id="consentS" ${state.consentS ? 'checked' : ''}>
+          <span>[필수] 개인정보 수집·이용에 동의합니다<span class="en">I agree to the use of my personal information (required)</span></span></label>
+        <details><summary>내용 보기 · Details</summary>
+          <table>
+            <tr><th>수집 주체</th><td>${esc(P.who)}</td></tr>
+            <tr><th>수집 목적</th><td>${esc(P.purpose)}</td></tr>
+            <tr><th>수집 항목</th><td>${esc(P.items)}</td></tr>
+            <tr><th>보유 기간</th><td>${esc(P.period)}</td></tr>
+          </table>
+          <p>동의를 거부할 수 있으며, 거부 시 설문 참여가 제한됩니다.</p>
+          <p>${esc(P.en)}</p>
+        </details>
+        <div class="err"></div>
+      </div>`,
+      `<button class="btn primary" id="start">${btnLabel(T.start)}</button>`);
+
+    const phone = document.getElementById('in-phone');
+    phone.addEventListener('input', () => { phone.value = formatPhone(phone.value); });
+    document.getElementById('start').onclick = () => {
+      INFO_FIELDS.filter(f => f.required).forEach(f => info[f.id] = document.getElementById('in-' + f.id).value.trim());
+      state.consentS = document.getElementById('consentS').checked;
+      const errs = {};
+      INFO_FIELDS.filter(f => f.required).forEach(f => { errs[f.id] = !info[f.id] ? '꼭 입력해 주세요 · Required' : ''; });
+      const digits = info.phone.replace(/\D/g, '');
+      if (info.phone && (digits.length < 8 || digits.length > 15)) errs.phone = '번호를 확인해 주세요 · Please check the number';
+      errs.consentS = state.consentS ? '' : '동의가 필요합니다 · Please agree to continue';
+      let first = null;
+      Object.entries(errs).forEach(([k, msg]) => {
+        const box = document.getElementById('f-' + k); if (!box) return;
+        box.classList.toggle('has-error', !!msg);
+        box.querySelector('.err').textContent = msg;
+        if (msg && !first) first = box;
+      });
+      if (first) { first.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+      go(nextStep(-1));
+    };
+  }
+
+  /* ----- 문항 화면 ----- */
+  const store = (f, a) => f.info ? state.info : a.fields;
+  function isAnswered(q) {
+    const a = state.answers[q.id];
+    if (q.type === 'text') return !!a.text.trim();
+    if (q.type === 'rows') return a.rows.some(r => r.some(c => c.trim()));
+    if (q.type === 'form') return q.fields.some(f => fieldVisible(f) && (store(f, a)[f.id] || '').trim());
+    if (!a.selected.length) return false;
+    const oi = q.options.findIndex(o => o.other);
+    if (oi > -1 && a.selected.includes(oi) && !a.other.trim()) return false;
+    return true;
+  }
+
+  function fieldInput(f, a) {
+    const v = store(f, a)[f.id] || '';
+    if (f.type === 'chips') return `
+      <div class="field"><label>${esc(f.label)}${enSpan(f.en)}</label><div class="chips">
+        ${f.options.map(o => `<button class="chipbtn ${v === o.v ? 'on' : ''}" data-f="${f.id}" data-v="${esc(o.v)}">${esc(o.v)}${enSpan(o.en)}</button>`).join('')}
+      </div></div>`;
+    const t = f.type === 'email' ? 'type="email" inputmode="email"' : f.type === 'tel' ? 'type="tel" inputmode="tel"' : '';
+    return `<div class="field" id="box-${f.id}"><label for="fld-${f.id}">${esc(f.label)}${enSpan(f.en)}</label>
+      <input id="fld-${f.id}" data-f="${f.id}" ${t} placeholder="${esc(f.placeholder || '')}" value="${esc(v)}"><div class="err"></div></div>`;
+  }
+
+  function countWith(q) {
+    const own = state.answers[q.id].selected.filter(k => !q.options[k].none).length;
+    if (!q.maxWith) return own;
+    const q2 = QUESTIONS.find(x => x.id === q.maxWith);
+    return own + state.answers[q2.id].selected.filter(k => !q2.options[k].none).length;
+  }
+
+  function renderQuestion(idx) {
+    const q = QUESTIONS[idx], a = state.answers[q.id];
+    const last = nextStep(idx) === null;
+    const required = !!q.required;
+    let body = '';
+
+    if (q.type === 'text') {
+      body = `<div class="field"><textarea id="txt" placeholder="${esc(q.placeholder || '')}">${esc(a.text)}</textarea></div>`;
+    } else if (q.type === 'rows') {
+      body = a.rows.map((r, ri) => `
+        <div class="rowcard"><div class="rowgrid">${q.columns.map((c, ci) => `<div class="field"><label>${esc(c.label)}${enSpan(c.en)}</label>
+            <input data-r="${ri}" data-c="${ci}" placeholder="${esc(c.placeholder || '')}" value="${esc(r[ci])}"></div>`).join('')}</div>
+        </div>`).join('');
+    } else if (q.type === 'form') {
+      body = q.fields.filter(fieldVisible).map(f => fieldInput(f, a)).join('');
+    } else {
+      const kind = q.multi ? 'multi' : 'single';
+      const grid = q.options.length > 5;
+      body = `<p class="hint ${q.max ? '' : ''}" id="hint">${esc(q.hintText || (q.multi ? T.multi : ''))}</p>
+        <div class="options ${grid ? 'grid2' : ''}">
+        ${q.options.map((o, k) => `
+          <button class="opt ${a.selected.includes(k) ? 'on' : ''}" data-k="${k}" data-kind="${kind}"
+            role="${q.multi ? 'checkbox' : 'radio'}" aria-checked="${a.selected.includes(k)}">
+            <span class="mark"></span><span class="txt"><span class="ko">${esc(o.ko || o.label)}</span>${enSpan(o.en)}</span></button>`).join('')}
+        </div>
+        <div class="other" id="otherBox" style="display:none"><input id="otherIn" placeholder="${esc(T.other)}" value="${esc(a.other)}"></div>`;
+    }
+
+    shell(`
+      <span class="chip">${esc(q.category[0])} · ${esc(q.category[1])}</span>
+      <h2>${esc(q.title[0])}<span class="en">${esc(q.title[1])}</span></h2>
+      ${q.desc ? `<p class="desc">${esc(q.desc)}</p>` : ''}
+      ${body}`,
+      `<button class="btn ghost" id="prev">${btnLabel(T.back)}</button>
+       <button class="btn primary" id="next"></button>`);
+
+    const nextBtn = document.getElementById('next');
+    const hint = document.getElementById('hint');
+    if (hint && !hint.textContent) hint.style.display = 'none';
+    const refresh = () => {
+      const ok = isAnswered(q);
+      nextBtn.disabled = required && !ok;
+      nextBtn.innerHTML = btnLabel(last ? T.submit : (required || ok ? T.next : T.skip));
+      const box = document.getElementById('otherBox');
+      if (box) {
+        const oi = q.options.findIndex(o => o.other);
+        box.style.display = oi > -1 && a.selected.includes(oi) ? 'block' : 'none';
+      }
+    };
+
+    if (q.type === 'text') document.getElementById('txt').addEventListener('input', e => { a.text = e.target.value; refresh(); });
+    if (q.type === 'rows') app.querySelectorAll('input[data-r]').forEach(inp => inp.addEventListener('input', () => {
+      a.rows[+inp.dataset.r][+inp.dataset.c] = inp.value; refresh();
+    }));
+    app.querySelectorAll('input[data-f]').forEach(inp => inp.addEventListener('input', () => {
+      const f = q.fields.find(x => x.id === inp.dataset.f); store(f, a)[f.id] = inp.value; refresh();
+    }));
+    app.querySelectorAll('.chipbtn').forEach(b => b.onclick = () => {
+      const f = b.dataset.f, v = b.dataset.v;
+      a.fields[f] = a.fields[f] === v ? '' : v;
+      app.querySelectorAll(`.chipbtn[data-f="${f}"]`).forEach(x => x.classList.toggle('on', x.dataset.v === a.fields[f]));
+      refresh();
+    });
+
+    if (q.type === 'choice') {
+      const paint = () => app.querySelectorAll('.opt').forEach(b => {
+        const on = a.selected.includes(+b.dataset.k);
+        b.classList.toggle('on', on); b.setAttribute('aria-checked', on);
+      });
+      app.querySelectorAll('.opt').forEach(btn => btn.onclick = () => {
+        const k = +btn.dataset.k, o = q.options[k];
+        if (!q.multi) a.selected = [k];
+        else if (a.selected.includes(k)) a.selected = a.selected.filter(x => x !== k);
+        else if (o.none) a.selected = [k];
+        else {
+          if (q.max && countWith(q) >= q.max) {
+            hint.classList.add('warn');
+            setTimeout(() => hint.classList.remove('warn'), 1500);
+            return;
+          }
+          a.selected = [...a.selected.filter(x => !q.options[x].none), k];
+        }
+        paint(); refresh();
+        if (o.other && a.selected.includes(k)) { setTimeout(() => document.getElementById('otherIn').focus(), 50); return; }
+        if (!q.multi && !last) setTimeout(() => { if (state.step === idx + 1) go(nextStep(idx)); }, 250);
+      });
+      const oi = document.getElementById('otherIn');
+      if (oi) oi.addEventListener('input', e => { a.other = e.target.value; refresh(); });
+    }
+    refresh();
+
+    document.getElementById('prev').onclick = () => history.back();
+    nextBtn.onclick = () => {
+      if (required && !isAnswered(q)) return;
+      const bad = (q.fields || []).find(f => f.type === 'email' && store(f, a)[f.id] && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(store(f, a)[f.id]));
+      if (bad) { const b = document.getElementById('box-' + bad.id); b.classList.add('has-error'); b.querySelector('.err').textContent = 'E-mail 형식을 확인해 주세요 · Please check'; return; }
+      if (last) submit(); else go(nextStep(idx));
+    };
+  }
+
+  /* ----- 삼전용 / 간토용 결과 만들기 (항상 한국어로 저장) ----- */
+  function choiceLabels(q, Tg) {
+    const a = state.answers[q.id], out = [];
+    a.selected.slice().sort((x, y) => x - y).forEach(k => {
+      const o = q.options[k];
+      if (o.only && o.only !== Tg) return;
+      let l = typeof o[Tg] === 'string' ? o[Tg] : o.label;
+      if (o.other && a.other.trim()) l += ': ' + a.other.trim();
+      if (!out.includes(l)) out.push(l);
+    });
+    return out;
+  }
+  function put(out, col, val, sep = ', ') {   // 같은 열에 두 화면 답이 들어가면 이어 붙이기
+    if (!(col in out) || !out[col]) out[col] = val;
+    else if (val) out[col] += sep + val;
+  }
+
+  function buildFor(Tg) {
+    const out = {};
+    if (Tg === 'S') {
+      out['응대자'] = staff ? `${staff.name} ${staff.title}` : '미지정';
+      INFO_FIELDS.forEach(f => { out[f.S] = state.info[f.id] || ''; });
+    }
+    let rowNo = 0;
+    QUESTIONS.forEach(q => {
+      const vis = qVisible(q), a = state.answers[q.id];
+      if (q.type === 'choice') {
+        if (q[Tg]) put(out, q[Tg], vis ? choiceLabels(q, Tg).join(', ') : '');
+        if (Tg === 'K' && q.kFlag) out[q.kFlag] = !a.selected.length ? '' : (choiceLabels(q, 'K').length ? '예' : '아니오');
+      }
+      if (q.type === 'rows' && q[Tg]) {
+        put(out, q[Tg], vis ? a.rows.filter(r => r.some(c => c.trim()))
+          .map(r => `[${++rowNo}] ` + q.columns.map((c, ci) => `${c.label}: ${r[ci].trim() || '-'}`).join(' / ')).join('\n') : '', '\n');
+      }
+      if (q.type === 'text' && q[Tg]) put(out, q[Tg], a.text.trim());
+      (q.fields || []).forEach(f => {
+        if (f[Tg]) put(out, f[Tg], vis && fieldVisible(f) ? (a.fields[f.id] || '').trim() : '');
+      });
+    });
+    if (Tg === 'S') out['개인정보 수집·이용 동의'] = state.consentS ? 'Y' : 'N';
+    return out;
+  }
+
+  function submit() { send({ sid: state.sid, samchun: buildFor('S'), kanto: buildFor('K') }); }
+
+  function renderSending() {
+    shell(`<div class="center"><div class="spinner"></div><h2>제출 중입니다<span class="en">Submitting…</span></h2></div>`, '');
+  }
+  function renderDone() {
+    shell(`<div class="center">
+      <div class="ok-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#1E5BD8" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+      <h1>설문이 제출되었습니다<span class="en">Your survey has been submitted</span></h1>
+      <p class="lead">소중한 의견 감사합니다.<br>빠른 시일 내에 연락드리겠습니다.</p>
+      <p class="lead en">Thank you. We will contact you soon.</p>
+      ${staff ? `<div class="staff"><span class="dot"></span><span>담당 · Contact <b>${esc(staff.name)} ${esc(staff.title)}</b></span></div>` : ''}
+      <p class="desc">${esc(CONFIG.COMPANY)} · ${esc(CONFIG.COMPANY_EN)}</p>
+      ${DEMO ? '<span class="badge">테스트 모드 · 저장되지 않음</span>' : ''}
+    </div>`, '');
+  }
+  function renderFail(payload) {
+    shell(`<div class="center"><h2>전송에 실패했습니다<span class="en">Could not send</span></h2>
+      <p class="desc">인터넷 연결을 확인한 뒤 다시 눌러 주세요.<br>Please check your connection and try again.</p></div>`,
+      `<button class="btn primary" id="retry">다시 전송<span class="en">Retry</span></button>`);
+    document.getElementById('retry').onclick = () => send(payload);
+  }
+  async function send(payload) {
+    renderSending();
+    if (DEMO) {
+      console.log('[테스트 모드] 삼전용', JSON.stringify(payload.samchun));
+      console.log('[테스트 모드] 간토용', JSON.stringify(payload.kanto));
+      await new Promise(r => setTimeout(r, 600));
+      return finish();
+    }
+    for (let i = 0; i < 3; i++) {
+      try {
+        await fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+        return finish();
+      } catch (e) { await new Promise(r => setTimeout(r, 1500)); }
+    }
+    renderFail(payload);
+  }
+  function finish() {
+    state.submitted = true;
+    history.pushState({ step: -1 }, '');
+    renderDone();
+  }
+
+  go(0, false);
+
+  /* ----- QR 관리 화면 (주소 뒤에 ?qr) ----- */
+  function renderQRAdmin() {
+    const base = location.origin + location.pathname.replace(/index\.html$/, '');
+    app.innerHTML = `
+      <div class="topbar"><b>${esc(CONFIG.COMPANY)}</b><span>${esc(CONFIG.EVENT)} · QR 관리</span></div>
+      <main class="qr-wrap">
+        <div class="qr-head">
+          <h1>부스 인원별 설문 QR</h1>
+          <button class="btn primary small" id="dlAll">전체 다운로드</button>
+        </div>
+        ${location.protocol === 'file:' ? `<div class="note warn">내 컴퓨터에서 연 파일이라 이 QR은 쓸 수 없습니다. 인터넷에 올린 주소에서 다시 열어 주세요.</div>` : ''}
+        ${DEMO ? `<div class="note warn">아직 저장 주소(SCRIPT_URL)가 비어 있어 테스트 모드입니다. 응답이 저장되지 않습니다.</div>` : ''}
+        <div class="note">각자 본인 QR 이미지를 휴대폰에 저장해 두세요. 휴대폰에서는 이미지를 길게 눌러 저장할 수 있습니다.<br>QR 주소: <b>${esc(base)}?s=번호</b></div>
+        <div class="grid" id="grid"></div>
+      </main>`;
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js';
+    s.onload = async () => {
+      try { await document.fonts.ready; } catch (e) {}
+      const grid = document.getElementById('grid');
+      STAFF.forEach(st => {
+        const url = `${base}?s=${st.code}`, png = makeCard(st, url), file = `SEDEX_QR_${st.code}_${st.name}.png`;
+        const el = document.createElement('div');
+        el.className = 'qcard';
+        el.innerHTML = `<img src="${png}" alt="${esc(st.name)} QR">
+          <div class="row"><a class="dl" href="${png}" download="${esc(file)}">다운로드</a>
+          <a href="${esc(url)}" target="_blank" rel="noopener">열어보기</a></div>`;
+        el.dataset.file = file; el.dataset.png = png;
+        grid.appendChild(el);
+      });
+      document.getElementById('dlAll').onclick = async () => {
+        for (const c of grid.querySelectorAll('.qcard')) {
+          const a = document.createElement('a'); a.href = c.dataset.png; a.download = c.dataset.file;
+          document.body.appendChild(a); a.click(); a.remove();
+          await new Promise(r => setTimeout(r, 400));
+        }
+      };
+    };
+    s.onerror = () => { document.getElementById('grid').innerHTML = '<div class="note warn">QR 도구를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.</div>'; };
+    document.head.appendChild(s);
+  }
+  function makeCard(st, url) {
+    const W = 1080, H = 1440, c = document.createElement('canvas'); c.width = W; c.height = H;
+    const g = c.getContext('2d');
+    const font = '"Pretendard Variable",Pretendard,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif';
+    g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, W, H);
+    g.fillStyle = '#0F2A5C'; g.fillRect(0, 0, W, 250);
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = '#FFFFFF'; g.font = `700 52px ${font}`; g.fillText(CONFIG.COMPANY, W / 2, 105);
+    g.globalAlpha = .75; g.font = `500 36px ${font}`; g.fillText(`${CONFIG.EVENT} · Visitor Survey`, W / 2, 175); g.globalAlpha = 1;
+    const qr = qrcode(0, 'M'); qr.addData(url); qr.make();
+    const n = qr.getModuleCount(), cell = Math.floor(680 / n), size = cell * n;
+    const x0 = Math.round((W - size) / 2), y0 = 310 + Math.round((680 - size) / 2);
+    g.fillStyle = '#111827';
+    for (let r = 0; r < n; r++) for (let col = 0; col < n; col++)
+      if (qr.isDark(r, col)) g.fillRect(x0 + col * cell, y0 + r * cell, cell, cell);
+    g.fillStyle = '#111827'; g.font = `800 76px ${font}`; g.fillText(`${st.name} ${st.title}`, W / 2, 1110);
+    g.fillStyle = '#475467'; g.font = `600 38px ${font}`; g.fillText('카메라로 QR을 찍어 설문에 참여해 주세요', W / 2, 1200);
+    g.font = `500 34px ${font}`; g.fillText('Scan the QR code to take our survey', W / 2, 1255);
+    g.fillStyle = '#D5DBE5'; g.fillRect(140, 1330, W - 280, 2);
+    g.fillStyle = '#98A2B3'; g.font = `500 28px ${font}`; g.fillText(`No.${st.code}`, W / 2, 1380);
+    return c.toDataURL('image/png');
+  }
+})();
+</script>
+</body>
+</html>
