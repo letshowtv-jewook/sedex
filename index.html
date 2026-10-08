@@ -41,13 +41,16 @@
   .dot{width:9px;height:9px;border-radius:50%;background:var(--ok);flex:none}
 
   /* 시작 화면 */
-  .hero{padding:calc(env(safe-area-inset-top) + 34px) 24px 20px}
-  .hero .logo{height:34px;display:block;margin-bottom:30px}
+  .hero{padding:calc(env(safe-area-inset-top) + 28px) 24px 16px}
+  .hero .logo{height:32px;display:block;margin-bottom:24px}
   .eyebrow{display:inline-block;font-size:14px;font-weight:800;letter-spacing:1px;color:var(--accent);margin-bottom:10px}
   .tagline{font-size:17px;font-weight:600;margin:0;padding-top:14px;border-top:2px solid var(--accent);display:inline-block}
   .tagline .en{font-size:14.5px;margin-top:2px}
-  .wbody{padding:0 24px 150px}
-  .agree{font-size:14px;color:var(--muted);text-align:center;margin:0 0 10px}
+  .wbody{padding:0 24px 40px}
+  .startbtn{display:block;width:100%;margin:18px 0 12px;font:inherit;font-size:24px;font-weight:800;color:#fff;background:var(--accent);border:0;border-radius:18px;padding:22px 16px;cursor:pointer;box-shadow:0 6px 18px rgba(202,16,27,.28);line-height:1.2}
+  .startbtn .en{display:block;color:rgba(255,255,255,.9);font-size:17px;font-weight:600;margin-top:4px}
+  .startbtn:active{transform:scale(.98)}
+  .agree{font-size:15px;color:var(--muted);text-align:center;margin:0;line-height:1.5}
   .agree a{color:var(--text);font-weight:700;text-decoration:underline;cursor:pointer}
 
   /* 입력칸 */
@@ -349,12 +352,12 @@ const QUESTIONS = [
     options:[ {label:'안정적 공급', en:'Stable supply'}, {label:'가격', en:'Price'}, {label:'단납기', en:'Short lead time'},
               {label:'기술 지원', en:'Technical support'}, {label:'맞춤(커스텀) 대응', en:'Customization', S:'기타: 맞춤(커스텀) 대응'}, {label:'기타', en:'Other'} ]},
 
-  { id:'metalLimit', cat:['상세 규격','Specifications'], title:['금속 불순물은 어느 수준이 필요하세요?','Metal impurity level needed'],
+  { id:'metalLimit', cat:['상세 규격','Specifications'], title:['필요한 금속 불순물 수준은?','Metal impurity level needed'],
     S:'6. 금속 한도', showIf: () => hasAny('product', ['solvent','etch']),
     options:[ {label:'ppt 수준', en:'ppt level'}, {label:'1 ppb 이하', en:'≤ 1 ppb'}, {label:'10 ppb 이하', en:'≤ 10 ppb'},
               {label:'100 ppb 이하', en:'≤ 100 ppb'}, {label:'잘 모름·협의', en:'Not sure'} ]},
 
-  { id:'water', cat:['상세 규격','Specifications'], title:['수분은 어느 수준이 필요하세요?','Moisture level needed'],
+  { id:'water', cat:['상세 규격','Specifications'], title:['필요한 수분 수준은?','Moisture level needed'],
     S:'6. 수분', showIf: () => hasAny('product', ['solvent','etch']),
     options:[ {label:'10 ppm 이하', en:'≤ 10 ppm'}, {label:'50 ppm 이하', en:'≤ 50 ppm'}, {label:'100 ppm 이하', en:'≤ 100 ppm'},
               {label:'500 ppm 이하', en:'≤ 500 ppm'}, {label:'잘 모름·협의', en:'Not sure'} ]},
@@ -408,7 +411,7 @@ const QUESTIONS = [
       {only:'S', label:'대량·정기 공급 상담', ko:'대량·정기 공급', en:'Bulk · Regular supply'},
       {label:'지금은 필요 없음', en:'Nothing for now', none:true, S:'없음', K:'없음'} ]},
 
-  { id:'reqAmount', cat:['후속 조치','Next steps'], title:['샘플·견적은 어느 정도 양이 필요하세요?','Quantity for sample / quote'],
+  { id:'reqAmount', cat:['후속 조치','Next steps'], title:['샘플·견적에 필요한 양은?','Quantity for sample / quote'],
     S:'8. 샘플·견적 필요량', K:'8. 요청 필요량', showIf: () => hasReal('follow'),
     options:[ {label:'샘플 소량 (1 L 이하)', en:'Small sample (≤ 1 L)'}, {label:'4 L 이하', en:'Up to 4 L'}, {label:'18~20 L', en:'18–20 L'},
               {label:'200 L 이상', en:'200 L or more'}, {label:'미정', en:'Not decided'} ]},
@@ -488,7 +491,9 @@ function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selecte
           <p class="tagline">${esc(CONFIG.TAGLINE[0])}<span class="en">${esc(CONFIG.TAGLINE[1])}</span></p>
         </div>
         <div class="wbody">
-          ${staff ? `<div class="staff"><span class="dot"></span><span>담당 · Contact <b>${esc(staff.name)} ${esc(staff.title)}</b></span></div>` : ''}
+          <button class="startbtn" id="go">동의하고 시작하기<span class="en">Agree &amp; Start</span></button>
+          <p class="agree">누르시면 개인정보 수집·이용에 동의하게 됩니다 <a id="showP">내용 보기</a><br>By tapping, you agree to our privacy notice.</p>
+          ${staff ? `<div class="staff" style="margin-top:16px"><span class="dot"></span><span>담당 · Contact <b>${esc(staff.name)} ${esc(staff.title)}</b></span></div>` : ''}
           <details id="pdetail"><summary></summary>
             <table>
               <tr><th>수집 주체</th><td>${esc(P.who)}</td></tr>
@@ -499,11 +504,7 @@ function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selecte
             <p>동의를 거부할 수 있으며, 거부 시 설문 참여가 제한됩니다.</p><p>${esc(P.en)}</p>
           </details>
         </div>
-      </div>
-      <div class="bar wb"><div class="stack">
-        <p class="agree">아래 버튼을 누르면 개인정보 수집·이용에 동의합니다 <a id="showP">내용 보기</a><br>By tapping, you agree to our privacy notice.</p>
-        <button class="btn primary full" id="go">동의하고 시작<span class="en">Agree &amp; Start</span></button>
-      </div></div>`;
+      </div>`;
     document.getElementById('pdetail').style.display = 'none';
     document.getElementById('showP').onclick = () => {
       const d = document.getElementById('pdetail'); d.style.display = 'block'; d.open = true; d.scrollIntoView({ behavior: 'smooth' });
@@ -635,7 +636,7 @@ function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selecte
     const last = nextStep(idx) === null;
     const kind = q.multi ? 'multi' : 'single';
     const grid = q.options.length > 5 || q.freeText;
-    const hint = q.hintText || (q.multi ? '여러 개 고를 수 있어요 · Choose all that apply' : '');
+    const hint = q.hintText || (q.multi ? '여러 개 고를 수 있어요 · Choose all that apply' : '하나만 골라 주세요 · Choose one');
     shell(`
       <span class="chip">${esc(q.cat[0])} · ${esc(q.cat[1])}</span>
       <h2>${esc(q.title[0])}<span class="en">${esc(q.title[1])}</span></h2>
@@ -678,7 +679,6 @@ function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selecte
         a.selected = [...a.selected.filter(x => !q.options[x].none), k];
       }
       paint(); refresh();
-      if (!q.multi) setTimeout(() => { if (state.step === idx + 1) next(idx); }, 230);
     });
     const free = document.getElementById('free');
     if (free) free.addEventListener('input', () => { a.free = free.value; refresh(); });
