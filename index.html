@@ -86,6 +86,9 @@
   /* 보기 버튼 */
   .hint{font-size:14px;color:var(--muted);margin:-6px 0 10px;font-weight:600}
   .hint.warn{color:var(--error)}
+  .gq{font-size:18px;font-weight:800;margin:16px 0 8px;line-height:1.3}
+  .gq small{font-size:13px;color:var(--muted);font-weight:600}
+  .gq .en{display:block;font-size:13.5px;color:var(--muted);font-weight:600}
   .options{display:flex;flex-direction:column;gap:8px}
   .opt{position:relative;display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;padding:11px 14px;border:2px solid var(--line);border-radius:14px;background:var(--card);color:var(--text);cursor:pointer;min-height:56px}
   .opt .ko{font-size:18px;font-weight:600;line-height:1.3}
@@ -97,6 +100,8 @@
   .opt.on{border-color:var(--accent);background:var(--accent-soft)}
   .opt.on .mark{border-color:var(--accent);background:var(--accent)}
   .opt.on .mark::after{content:"";width:6px;height:11px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+  .options.tight{gap:7px}
+  .tight .opt{min-height:52px;padding:8px 14px}
   .options.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .grid2 .opt{padding:8px 10px;gap:8px;min-height:56px;align-items:flex-start;border-radius:12px}
   .grid2 .opt .mark{width:21px;height:21px;margin-top:2px}
@@ -218,12 +223,19 @@ const INFO = {
 };
 
 /* 문항 — 전부 누르기
-   single: 누르면 바로 다음 / multi: 여러 개 고르고 다음
+   흐름: 기본정보 → 관심 분야 → (그 분야 제품만) → 간토 핵심(현황·브랜드·조건·후속) 
+         "정보 수집 단계"면 여기서 끝, 구매 검토 중이면 구매·규격·맞춤 질문 추가
+   group: 한 화면에 작은 질문 2개 / part: 그 묶음 안에 들어가는 질문
    보기의 only:'S'|'K' = 그 회사 결과표에만 / S:'..' K:'..' = 그 회사 설문지 표현으로 저장 */
+const CATS = ['semi','clean','lab','env','raw'];
+const catOn = c => { const q = Q('cat'); return state.answers.cat.selected.some(k => q.options[k].key === c || q.options[k].key === 'unsure'); };
+const buyer = () => { const s = state.answers.status.selected; return s.length > 0 && s[0] !== 3; };   // 3 = 정보 수집 단계
+const using = () => { const s = state.answers.status.selected; return s[0] === 0 || s[0] === 1; };
+
 const QUESTIONS = [
   { id:'typing', type:'typing' },
 
-  { id:'type', cat:['고객 정보','About you'], title:['회사 유형을 선택해 주세요','Type of company'], S:'1. 회사 유형', required:true,
+  { id:'type', cat:['고객 정보','About you'], title:['회사 유형을 선택해 주세요','Type of company'], S:'1. 회사 유형', K:'1. 회사 유형', required:true,
     options:[ {label:'반도체 제조', en:'Semiconductor'}, {label:'화학소재 제조', en:'Chemical materials'},
               {label:'장비 및 부품', en:'Equipment · Parts'}, {label:'패키징 및 테스트', en:'Packaging · Test'},
               {label:'연구기관 및 대학', en:'Research · University'}, {label:'유통', en:'Distribution'}, {label:'기타', en:'Other'} ]},
@@ -238,52 +250,36 @@ const QUESTIONS = [
       {label:'클린룸·시설관리', en:'Cleanroom · Facility', K:'기타: 클린룸·시설관리'},
       {label:'기타', en:'Other'} ]},
 
-  { id:'usage', multi:true, usage:true, cat:['사용 용도','How you use it'],
-    title:['공정·생산에서 어디에 쓰시나요?','Use in process · production'],
-    hintText:'해당 없으면 다음 · Tap Next if none',
-    usageCol:'2. 주요 사용 목적', S:'용도 (상세)',
+  { id:'cat', multi:true, required:true, list:true, cat:['관심 분야','Your interest'],
+    title:['어떤 분야에 관심 있으세요?','What are you interested in?'],
+    usageCol:'2. 주요 사용 목적', S:'관심 분야',
     options:[
-      {label:'웨이퍼·기판 세정', en:'Wafer cleaning', pre:['solvent','etch','dsp'], purpose:'반도체 공정 직접 사용'},
-      {label:'식각 공정', en:'Etching', pre:['etch'], purpose:'반도체 공정 직접 사용'},
-      {label:'포토 공정 (PR·현상)', en:'Photo process', pre:['solvent'], purpose:'반도체 공정 직접 사용'},
-      {label:'클린룸·장비 세정', en:'Cleanroom cleaning', pre:['clean','solvent'], purpose:'클린룸·장비 세정'},
-      {label:'케미컬룸', en:'Chemical room', pre:['std'], purpose:'케미컬룸'},
-      {label:'식각액·세정액 원료', en:'Etchant raw material', pre:['etch','bulk'], purpose:'식각액·세정액 제조 원료'},
-      {label:'생산 원료 (슬러리 등)', en:'Production raw material', pre:['bulk'], purpose:'소재 합성·배합'} ]},
+      {key:'semi',  label:'반도체 공정 약품', en:'Semiconductor process chemicals', purpose:['반도체 공정 직접 사용']},
+      {key:'clean', label:'클린룸·장비 세정', en:'Cleanroom · Equipment cleaning', purpose:['클린룸·장비 세정']},
+      {key:'lab',   label:'분석·연구 시약', en:'Analysis · R&D reagents', purpose:['분석·품질관리']},
+      {key:'env',   label:'케미컬룸·폐수 관리', en:'Chemical room · Wastewater', purpose:['케미컬룸','폐수 관리']},
+      {key:'raw',   label:'원료·벌크 (식각액·슬러리 원료 등)', ko:'원료·벌크', en:'Raw materials · Bulk', purpose:['식각액·세정액 제조 원료','소재 합성·배합']},
+      {key:'unsure',label:'잘 모르겠어요 · 상담 원해요', ko:'잘 모르겠어요', en:'Not sure — please advise', consult:true, purpose:['기타']} ]},
 
-  { id:'usage2', multi:true, usage:true, requiredIfEmpty:'usage', cat:['사용 용도','How you use it'],
-    title:['분석·연구·환경에서 어디에 쓰시나요?','Use in analysis · research'],
-    hintText:'앞에서 고르셨으면 다음 · Tap Next if done',
-    usageCol:'2. 주요 사용 목적', S:'용도 (상세)',
+  { id:'product', multi:true, prefill:true, cat:['관심 제품','Products'],
+    title:['관심 있는 제품을 골라 주세요','Products you are interested in'],
+    desc:'고르신 분야의 제품만 보여드려요 · ⓘ 설명 보기',
+    S:'3. 관심 제품', K:'3. 관심 제품',
     options:[
-      {key:'icp', label:'미량 금속 분석 (ICP·AAS)', en:'Trace metal analysis', pre:['icpacid'], purpose:'분석·품질관리'},
-      {label:'HPLC·LC-MS 분석', en:'HPLC · LC-MS', pre:['hplc'], purpose:'분석·품질관리'},
-      {label:'적정·pH 품질검사', en:'Titration · pH · QC', pre:['std'], purpose:'분석·품질관리'},
-      {label:'폐수 관리 (수질 분석)', en:'Wastewater · water testing', pre:['std'], purpose:'폐수 관리'},
-      {label:'소재·전자재료 연구개발', en:'Materials R&D', pre:['solvent','anhydrous'], purpose:'소재 합성·배합'},
-      {label:'잘 모르겠어요 · 상담 원해요', en:'Not sure — please advise', none:true, consult:true, purpose:'기타'} ]},
-
-  { id:'product', multi:true, prefill:true, cat:['추천 제품','Suggested products'],
-    title:['공정용 제품, 이게 맞나요?','Process chemicals for you'],
-    desc:'용도에 맞춰 미리 골라 두었어요 · ⓘ 설명 보기',
-    S:'3. 관심 제품',
-    options:[
-      {key:'solvent',   label:'고순도 용제 EL·ELH Grade', ko:'고순도 용제 EL·ELH', en:'High-purity solvents'},
-      {key:'dsp',       label:'DSP (황산, 과수, 불산)', ko:'DSP', en:'H₂SO₄ · H₂O₂ · HF'},
-      {key:'etch',      label:'식각·불화계·산·알칼리', ko:'식각·산·알칼리', en:'Etchants · Acids'},
-      {key:'clean',     label:'클린룸 세정제', en:'Cleanroom cleaners'},
-      {key:'bulk',      label:'고체·액상 원료 및 공업용 용제 Bulk', ko:'원료·공업용 용제', en:'Bulk raw materials'} ]},
-
-  { id:'product2', multi:true, prefill:true, cat:['추천 제품','Suggested products'],
-    title:['분석·연구용 제품, 이게 맞나요?','Analytical & R&D chemicals'],
-    desc:'용도에 맞춰 미리 골라 두었어요 · ⓘ 설명 보기',
-    S:'3. 관심 제품',
-    options:[
-      {key:'icpacid',   label:'고순도 ICP/MS 분석용 Acid, Alkali', ko:'ICP/MS 분석용 산·알칼리', en:'Ultra-pure acids · alkalis'},
-      {key:'anhydrous', label:'Anhydrous Solvent', ko:'탈수 용매', en:'Anhydrous solvents'},
-      {key:'hplc',      label:'HPLC·LC-MS 분석용 용매', ko:'HPLC·LC-MS 용매', en:'HPLC solvents'},
-      {key:'std',       label:'적정용 표준용액 및 pH 완충표준액', ko:'표준용액·pH 표준액', en:'Standard · pH buffer'},
+      {key:'solvent',   cats:['semi','lab'],  label:'고순도 용제 EL·ELH Grade', ko:'고순도 용제 EL·ELH', en:'High-purity solvents', K:'고순도 용매'},
+      {key:'dsp',       cats:['semi'],        label:'DSP (황산, 과수, 불산)', ko:'DSP', en:'H₂SO₄ · H₂O₂ · HF', only:'S'},
+      {key:'etch',      cats:['semi','raw'],  label:'식각·불화계·산·알칼리', ko:'식각·산·알칼리', en:'Etchants · Acids', K:'고순도 알칼리 (KOH, NaOH)'},
+      {key:'clean',     cats:['clean'],       label:'클린룸 세정제', en:'Cleanroom cleaners', only:'S'},
+      {key:'icpacid',   cats:['lab'],         label:'고순도 ICP/MS 분석용 Acid, Alkali', ko:'ICP/MS 분석용 산·알칼리', en:'Ultra-pure acids · alkalis', K:'Ultrapur / Ultrapur-100'},
+      {key:'anhydrous', cats:['lab'],         label:'Anhydrous Solvent', ko:'탈수 용매', en:'Anhydrous solvents', K:'탈수 용매'},
+      {key:'hplc',      cats:['lab'],         label:'HPLC·LC-MS 분석용 용매', ko:'HPLC·LC-MS 용매', en:'HPLC solvents', only:'S'},
+      {key:'std',       cats:['lab','env'],   label:'적정용 표준용액 및 pH 완충표준액', ko:'표준용액·pH 표준액', en:'Standard · pH buffer', only:'S'},
+      {key:'bulk',      cats:['raw'],         label:'고체·액상 원료 및 공업용 용제 Bulk', ko:'원료·공업용 용제', en:'Bulk raw materials', only:'S'},
       {label:'기타', en:'Other'} ]},
+
+  { id:'icpCount', cat:['분석 장비','Instruments'], title:['ICP 분석 장비는 몇 대 있나요?','How many ICP instruments?'],
+    S:'★ ICP 장비 보유 대수', K:'★ ICP 장비 보유 대수', showIf: () => hasAny('product', ['icpacid']),
+    options:[ {label:'없음', en:'None'}, {label:'1~2대', en:'1–2'}, {label:'3~5대', en:'3–5'}, {label:'6대 이상', en:'6 or more'}, {label:'잘 모름', en:'Not sure'} ]},
 
   { id:'status', cat:['사용 현황','Current use'], title:['지금 상황에 가까운 것은?','Your current status'],
     S:'4. 사용·검토 현황', K:'4. 사용 현황', required:true,
@@ -296,109 +292,89 @@ const QUESTIONS = [
               {label:'Thermo Fisher'}, {label:'Honeywell'}, {label:'Kanto Chemical'},
               {label:'Tama Pure Chemical', ko:'Tama'}, {label:'Fujifilm Wako'}, {label:'LabChem'}, {label:'기타', en:'Other'} ]},
 
-  { id:'curGrade', cat:['사용 현황','Current use'], title:['지금 쓰는 제품의 등급은?','Grade you use now'],
-    S:'4. 현재 사용 제품 등급', showIf: () => state.answers.brand.selected.length > 0,
-    options:[ {label:'EL', en:'Electronic'}, {label:'ELH', en:'Electronic (high)'}, {label:'HPLC·LC-MS', en:'Analytical'},
-              {label:'GR (시약급)', en:'Reagent'}, {label:'CP·EP (공업용)', en:'Industrial'}, {label:'잘 모름', en:'Not sure'} ]},
-
-  { id:'scale', cat:['구매 수요','Demand'], title:['사용 규모는?','Scale of use'], S:'5. 사용 규모',
-    options:[ {label:'연구용 소량', en:'Small, for R&D'}, {label:'파일럿 평가', en:'Pilot evaluation'}, {label:'양산 사용', en:'Mass production'}, {label:'미정', en:'Not decided'} ]},
-
-  { id:'needGrade', cat:['구매 수요','Demand'], title:['필요한 등급은?','Grade you need'], S:'5. 필요 등급·농도',
-    options:[ {label:'EL', en:'Electronic'}, {label:'ELH', en:'Electronic (high)'}, {label:'HPLC', en:'HPLC'}, {label:'LC-MS', en:'LC-MS'},
-              {label:'원료·공업용', en:'Industrial'}, {label:'별도 협의', en:'To discuss'} ]},
-
-  { id:'volume', cat:['구매 수요','Demand'], title:['한 달에 쓰는 양은?','Monthly volume'], S:'5. 월 예상 사용량',
-    options:[ {label:'10 L 미만', en:'Under 10 L'}, {label:'10~100 L', en:'10–100 L'}, {label:'100 L ~ 1톤', en:'100 L – 1 ton'},
-              {label:'1톤 이상', en:'Over 1 ton'}, {label:'미정', en:'Not decided'} ]},
-
-  { id:'pack', cat:['구매 수요','Demand'], title:['원하는 포장은?','Preferred packaging'], S:'5. 희망 포장·용량',
-    options:[ {label:'소포장', en:'Bottle'}, {label:'말통', en:'Can (18–20 L)'}, {label:'드럼', en:'Drum (200 L)'}, {label:'기타 희망 포장', en:'Other'} ]},
-
-  { id:'timing', cat:['구매 수요','Demand'], title:['언제 쓰실 예정인가요?','When do you plan to start?'], S:'5. 평가·도입 시점',
-    options:[ {label:'1개월 이내', en:'Within 1 month'}, {label:'1~3개월', en:'1–3 months'}, {label:'3~6개월', en:'3–6 months'},
-              {label:'6개월 이후', en:'After 6 months'}, {label:'미정', en:'Not decided'} ]},
-
-  { id:'require', multi:true, max:3, maxWith:'require2', cat:['요구 사항','Requirements'],
-    title:['중요한 품질 조건은?','Important quality factors'], hintText:'다음 화면과 합쳐 3개까지 · Up to 3 in total',
+  { id:'require', multi:true, max:3, cat:['요구 사항','Requirements'],
+    title:['가장 중요한 조건은?','What matters most?'], hintText:'3개까지 골라 주세요 · Up to 3',
     S:'6. 중요 조건 (최대 3개)', K:'6. 고순도 시약 요구 사항',
     options:[
       {only:'S', label:'제품 규격 (등급·농도)', ko:'제품 규격', en:'Grade · Concentration'},
       {label:'금속 불순물 수준', ko:'금속 불순물', en:'Metal impurities', K:'금속 불순물 수준 (ppm / ppb / ppt)'},
       {only:'S', label:'수분 함량', en:'Moisture'},
-      {only:'S', label:'입자·증발잔류물', en:'Particles · Residue'},
-      {label:'로트 간 일관성', en:'Lot-to-lot consistency', K:'로트 간 안정성'},
-      {label:'COA 기재 항목', en:'COA items'} ]},
+      {only:'S', label:'입자·증발잔류물', ko:'입자·잔류물', en:'Particles · Residue'},
+      {label:'로트 간 일관성', en:'Lot consistency', K:'로트 간 안정성'},
+      {label:'COA 기재 항목', en:'COA items'},
+      {label:'안정적 공급', en:'Stable supply'}, {label:'가격', en:'Price'}, {label:'단납기', en:'Short lead time'},
+      {label:'기술 지원', en:'Tech support'}, {label:'맞춤(커스텀) 대응', ko:'맞춤 대응', en:'Customization', S:'기타: 맞춤(커스텀) 대응'}, {label:'기타', en:'Other'} ]},
 
-  { id:'require2', multi:true, max:3, maxWith:'require', cat:['요구 사항','Requirements'],
-    title:['중요한 공급 조건은?','Important supply factors'], hintText:'앞 화면과 합쳐 3개까지 · Up to 3 in total',
-    S:'6. 중요 조건 (최대 3개)', K:'6. 고순도 시약 요구 사항',
-    options:[ {label:'안정적 공급', en:'Stable supply'}, {label:'가격', en:'Price'}, {label:'단납기', en:'Short lead time'},
-              {label:'기술 지원', en:'Technical support'}, {label:'맞춤(커스텀) 대응', en:'Customization', S:'기타: 맞춤(커스텀) 대응'}, {label:'기타', en:'Other'} ]},
+  /* ---------- 여기부터는 구매·도입 검토 중인 분만 ---------- */
+  { id:'gGrade', type:'group', title:['제품 등급을 알려 주세요','About grade'], cat:['등급','Grade'], parts:['curGrade','needGrade'] },
+  { id:'curGrade', part:true, title:['지금 쓰는 등급','Grade you use now'], S:'4. 현재 사용 제품 등급', showIf: () => using(),
+    options:[ {label:'EL'}, {label:'ELH'}, {label:'HPLC·LC-MS', ko:'HPLC·LC-MS'}, {label:'GR (시약급)', ko:'GR 시약급'}, {label:'CP·EP (공업용)', ko:'공업용'}, {label:'잘 모름', en:'Not sure'} ]},
+  { id:'needGrade', part:true, title:['필요한 등급','Grade you need'], S:'5. 필요 등급·농도', showIf: () => buyer(),
+    options:[ {label:'EL'}, {label:'ELH'}, {label:'HPLC'}, {label:'LC-MS'}, {label:'원료·공업용', en:'Industrial'}, {label:'별도 협의', en:'To discuss'} ]},
 
-  { id:'metalLimit', cat:['상세 규격','Specifications'], title:['필요한 금속 불순물 수준은?','Metal impurity level needed'],
-    S:'6. 금속 한도', showIf: () => hasAny('product', ['solvent','etch']),
-    options:[ {label:'ppt 수준', en:'ppt level'}, {label:'1 ppb 이하', en:'≤ 1 ppb'}, {label:'10 ppb 이하', en:'≤ 10 ppb'},
-              {label:'100 ppb 이하', en:'≤ 100 ppb'}, {label:'잘 모름·협의', en:'Not sure'} ]},
+  { id:'gPlan', type:'group', title:['구매 계획을 알려 주세요','Your purchase plan'], cat:['구매 계획','Purchase plan'], parts:['scale','timing'] },
+  { id:'scale', part:true, title:['사용 규모','Scale of use'], S:'5. 사용 규모', showIf: () => buyer(),
+    options:[ {label:'연구용 소량', en:'R&D'}, {label:'파일럿 평가', en:'Pilot'}, {label:'양산 사용', en:'Mass production'}, {label:'미정', en:'Not decided'} ]},
+  { id:'timing', part:true, title:['언제 쓰실 예정인가요?','When do you plan to start?'], S:'5. 평가·도입 시점', showIf: () => buyer(),
+    options:[ {label:'1개월 이내', en:'< 1 month'}, {label:'1~3개월', en:'1–3 months'}, {label:'3~6개월', en:'3–6 months'}, {label:'6개월 이후', en:'> 6 months'}, {label:'미정', en:'Not decided'} ]},
 
-  { id:'water', cat:['상세 규격','Specifications'], title:['필요한 수분 수준은?','Moisture level needed'],
-    S:'6. 수분', showIf: () => hasAny('product', ['solvent','etch']),
-    options:[ {label:'10 ppm 이하', en:'≤ 10 ppm'}, {label:'50 ppm 이하', en:'≤ 50 ppm'}, {label:'100 ppm 이하', en:'≤ 100 ppm'},
-              {label:'500 ppm 이하', en:'≤ 500 ppm'}, {label:'잘 모름·협의', en:'Not sure'} ]},
+  { id:'gVol', type:'group', title:['사용량과 포장을 알려 주세요','Volume & packaging'], cat:['구매 계획','Purchase plan'], parts:['volume','pack'] },
+  { id:'volume', part:true, title:['한 달에 쓰는 양','Monthly volume'], S:'5. 월 예상 사용량', showIf: () => buyer(),
+    options:[ {label:'10 L 미만', en:'< 10 L'}, {label:'10~100 L'}, {label:'100 L ~ 1톤', en:'100 L – 1 t'}, {label:'1톤 이상', en:'> 1 ton'}, {label:'미정', en:'Not decided'} ]},
+  { id:'pack', part:true, multi:true, title:['원하는 포장','Packaging'], S:'5. 희망 포장·용량', showIf: () => buyer(),
+    options:[ {label:'소포장', en:'Bottle'}, {label:'말통', en:'18–20 L'}, {label:'드럼', en:'200 L'}, {label:'기타 희망 포장', ko:'기타', en:'Other'} ]},
 
-  { id:'cleanConc', multi:true, cat:['상세 규격','Specifications'], title:['필요한 클린룸 세정제는?','Cleanroom cleaner you need'],
-    S:'6. 클린룸 세정제 농도', showIf: () => hasAny('product', ['clean']),
-    options:[ {label:'에탄올 70%', en:'Ethanol 70%'}, {label:'IPA 70%', en:'IPA 70%'}, {label:'IPA 100%', en:'IPA 100%'},
-              {label:'과산화수소 3%', en:'H₂O₂ 3%'}, {label:'과산화수소 5%', en:'H₂O₂ 5%'}, {label:'과산화수소 7.5%', en:'H₂O₂ 7.5%'} ]},
+  { id:'gHP', type:'group', title:['필요한 규격을 알려 주세요','Specifications you need'], cat:['상세 규격','Specifications'], parts:['metalLimit','water'] },
+  { id:'metalLimit', part:true, title:['필요한 금속 불순물 수준','Metal impurity level'], S:'6. 금속 한도', showIf: () => buyer() && hasAny('product', ['solvent','etch','dsp']),
+    options:[ {label:'ppt 수준', en:'ppt'}, {label:'1 ppb 이하', en:'≤ 1 ppb'}, {label:'10 ppb 이하', en:'≤ 10 ppb'}, {label:'100 ppb 이하', en:'≤ 100 ppb'}, {label:'잘 모름·협의', ko:'잘 모름', en:'Not sure'} ]},
+  { id:'water', part:true, title:['필요한 수분 수준','Moisture level'], S:'6. 수분', showIf: () => buyer() && hasAny('product', ['solvent','anhydrous']),
+    options:[ {label:'10 ppm 이하', en:'≤ 10 ppm'}, {label:'50 ppm 이하', en:'≤ 50 ppm'}, {label:'100 ppm 이하', en:'≤ 100 ppm'}, {label:'500 ppm 이하', en:'≤ 500 ppm'}, {label:'잘 모름·협의', ko:'잘 모름', en:'Not sure'} ]},
 
-  { id:'sterile', cat:['상세 규격','Specifications'], title:['멸균 제품이 필요하세요?','Sterile or non-sterile?'],
-    S:'6. 세정제 멸균 여부', showIf: () => hasAny('product', ['clean']),
+  { id:'gClean', type:'group', title:['필요한 세정제를 알려 주세요','Cleaner you need'], cat:['상세 규격','Specifications'], parts:['cleanConc','sterile'] },
+  { id:'cleanConc', part:true, multi:true, title:['필요한 세정제','Cleaner you need'], S:'6. 클린룸 세정제 농도', showIf: () => buyer() && hasAny('product', ['clean']),
+    options:[ {label:'에탄올 70%', en:'Ethanol 70%'}, {label:'IPA 70%'}, {label:'IPA 100%'}, {label:'과산화수소 3%', en:'H₂O₂ 3%'}, {label:'과산화수소 5%', en:'H₂O₂ 5%'}, {label:'과산화수소 7.5%', en:'H₂O₂ 7.5%'} ]},
+  { id:'sterile', part:true, title:['멸균 여부','Sterile?'], S:'6. 세정제 멸균 여부', showIf: () => buyer() && hasAny('product', ['clean']),
     options:[ {label:'Sterile', en:'멸균'}, {label:'Non-Sterile', en:'비멸균'}, {label:'별도 협의', en:'To discuss'} ]},
 
-  { id:'stdConc', multi:true, cat:['상세 규격','Specifications'], title:['필요한 표준용액 농도는?','Standard solution concentration'],
-    S:'6. 표준용액 농도', showIf: () => hasAny('product2', ['std']),
+  { id:'gStd', type:'group', title:['필요한 표준액을 알려 주세요','Standards you need'], cat:['상세 규격','Specifications'], parts:['stdConc','stdPh'] },
+  { id:'stdConc', part:true, multi:true, title:['필요한 표준용액 농도','Standard concentration'], S:'6. 표준용액 농도', showIf: () => buyer() && hasAny('product', ['std']),
     options:[ {label:'1 mol/L'}, {label:'0.5 mol/L'}, {label:'0.1 mol/L'}, {label:'0.01 mol/L'}, {label:'기타', en:'Other'} ]},
-
-  { id:'stdPh', multi:true, cat:['상세 규격','Specifications'], title:['필요한 pH 표준액은?','pH buffer you need'],
-    S:'6. 표준용액 pH', showIf: () => hasAny('product2', ['std']),
+  { id:'stdPh', part:true, multi:true, title:['필요한 pH 표준액','pH buffer'], S:'6. 표준용액 pH', showIf: () => buyer() && hasAny('product', ['std']),
     options:[ {label:'pH 4.01'}, {label:'pH 6.86'}, {label:'pH 7.00'}, {label:'pH 9.18'}, {label:'기타', en:'Other'} ]},
 
-  { id:'icpCount', cat:['분석 장비','Instruments'], title:['ICP 분석 장비는 몇 대 있나요?','How many ICP instruments?'],
-    S:'★ ICP 장비 보유 대수', K:'★ ICP 장비 보유 대수', showIf: () => hasAny('usage2', ['icp']),
-    options:[ {label:'없음', en:'None'}, {label:'1~2대', en:'1–2'}, {label:'3~5대', en:'3–5'}, {label:'6대 이상', en:'6 or more'}, {label:'잘 모름', en:'Not sure'} ]},
-
   { id:'custom', multi:true, cat:['맞춤 대응','Custom request'], title:['필요한 맞춤 대응이 있나요?','Do you need any customization?'],
-    S:'7. 맞춤 대응 요청', K:'7. 특주품 관심 항목', kFlag:'7. 특주품 관심 여부',
+    S:'7. 맞춤 대응 요청', K:'7. 특주품 관심 항목', kFlag:'7. 특주품 관심 여부', showIf: () => buyer(),
     options:[
       {label:'농도 조정', en:'Concentration'},
       {only:'S', label:'혼합액·배합액', en:'Mixtures · Blends'}, {label:'포장·용량 변경', en:'Package · Volume', K:'용량 변경'},
       {label:'특수 포장', en:'Special packaging'}, {label:'추가 분석·규격 협의', ko:'추가 분석·규격', en:'Extra analysis · Specs', K:'금속 불순물 추가 규격 대응'},
       {only:'S', label:'대량·정기 공급', en:'Bulk · Regular supply'}, {label:'해당 없음', en:'None', none:true, only:'S'} ]},
 
+  /* ---------- 다시 모두 ---------- */
   { id:'follow', multi:true, required:true, cat:['후속 조치','Next steps'], title:['원하시는 것을 골라 주세요','What would you like next?'],
     S:'8. 후속 조치', K:'8. 후속 조치 희망',
     options:[
-      {label:'샘플 평가', en:'Sample'}, {label:'견적 요청', en:'Quotation'},
+      {key:'sample', label:'샘플 평가', en:'Sample'}, {key:'quote', label:'견적 요청', en:'Quotation'},
       {label:'COA·규격서·SDS 요청', ko:'COA·규격서·SDS', en:'COA · Spec · SDS', K:'COA 요청'},
       {label:'기술 상담 및 미팅', ko:'기술 상담·미팅', en:'Technical meeting', K:'온라인 미팅 (기술 협의)'},
       {only:'S', label:'기존 제품 대체 검토', ko:'기존 제품 대체', en:'Replace current product'},
       {only:'S', label:'대량·정기 공급 상담', ko:'대량·정기 공급', en:'Bulk · Regular supply'},
+      {label:'카탈로그·자료만', ko:'카탈로그·자료만', en:'Catalog only', S:'기타: 카탈로그·자료', only:'S'},
       {label:'지금은 필요 없음', en:'Nothing for now', none:true, S:'없음', K:'없음'} ]},
 
   { id:'reqAmount', cat:['후속 조치','Next steps'], title:['샘플·견적에 필요한 양은?','Quantity for sample / quote'],
-    S:'8. 샘플·견적 필요량', K:'8. 요청 필요량', showIf: () => hasReal('follow'),
+    S:'8. 샘플·견적 필요량', K:'8. 요청 필요량', showIf: () => hasAny('follow', ['sample','quote']),
     options:[ {label:'샘플 소량 (1 L 이하)', en:'Small sample (≤ 1 L)'}, {label:'4 L 이하', en:'Up to 4 L'}, {label:'18~20 L', en:'18–20 L'},
               {label:'200 L 이상', en:'200 L or more'}, {label:'미정', en:'Not decided'} ]},
 
-  { id:'contactHow', multi:true, cat:['후속 조치','Next steps'], title:['어떻게 연락드릴까요?','How should we contact you?'], S:'8. 희망 연락 방법',
-    options:[ {label:'E-mail', ko:'이메일', en:'E-mail'}, {label:'전화', en:'Phone'}, {label:'온라인 미팅', en:'Online meeting'}, {label:'방문 상담', en:'Visit'} ]},
+  { id:'gContact', type:'group', title:['어떻게 연락드릴까요?','How should we contact you?'], cat:['연락','Contact'], parts:['contactHow','contactWhen'] },
+  { id:'contactHow', part:true, multi:true, title:['연락 방법','How to contact you'], S:'8. 희망 연락 방법', showIf: () => hasReal('follow'),
+    options:[ {label:'E-mail', ko:'이메일', en:'E-mail'}, {label:'전화', en:'Phone'}, {label:'온라인 미팅', en:'Online'}, {label:'방문 상담', en:'Visit'} ]},
+  { id:'contactWhen', part:true, title:['연락 시점','When'], S:'8. 희망 연락 시점', showIf: () => hasReal('follow'),
+    options:[ {label:'이번 주', en:'This week'}, {label:'2주 이내', en:'2 weeks'}, {label:'한 달 이내', en:'1 month'}, {label:'별도 일정 협의', ko:'일정 협의', en:'We will arrange'} ]},
 
-  { id:'contactWhen', cat:['후속 조치','Next steps'], title:['언제 연락드리면 좋을까요?','When should we contact you?'], S:'8. 희망 연락 시점',
-    options:[ {label:'이번 주', en:'This week'}, {label:'2주 이내', en:'Within 2 weeks'}, {label:'한 달 이내', en:'Within a month'}, {label:'별도 일정 협의', en:'We will arrange'} ]},
-
-  { id:'opinion', multi:true, cat:['마지막','Last one'], title:['더 받고 싶은 것이 있나요?','Anything else you would like?'],
-    S:'기타 의견 및 문의', K:'의견 / 문의 사항', freeText:true,
-    options:[ {label:'카탈로그·자료', en:'Catalog'}, {label:'가격 정보', en:'Price list'}, {label:'신제품 소식', en:'New product news'}, {label:'없음', en:'Nothing', none:true} ]}
+  { id:'opinion', freeText:true, cat:['마지막','Last one'], title:['하실 말씀이 있으면 적어 주세요','Any comments?'],
+    S:'기타 의견 및 문의', showIf: () => buyer(), options:[] }
 ];
 </script>
 
@@ -412,7 +388,8 @@ const state = {
 QUESTIONS.forEach(q => state.answers[q.id] = { selected: [], touched: false, free: '' });
 const Q = id => QUESTIONS.find(x => x.id === id);
 function hasReal(qid) { const q = Q(qid); return state.answers[qid].selected.some(k => !q.options[k].none); }
-function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selected.some(k => keys.includes(q.options[k].key)); }
+const optVisible = (q, o) => !o.cats || o.cats.some(catOn);
+function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selected.some(k => keys.includes(q.options[k].key) && optVisible(q, q.options[k])); }
 
 (function(){
   const app = document.getElementById('app');
@@ -427,8 +404,9 @@ function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selecte
   if (params.has('qr')) { renderQRAdmin(); return; }
 
   const staff = STAFF.find(s => s.code === params.get('s')) || null;
-  const qVisible = q => !q.showIf || q.showIf();
-  const visibleList = () => QUESTIONS.map((q, i) => i).filter(i => qVisible(QUESTIONS[i]));
+  const qVisible = q => q.type === 'group' ? q.parts.some(id => qVisible(Q(id))) : (!q.showIf || q.showIf());
+  const navVisible = q => !q.part && qVisible(q);
+  const visibleList = () => QUESTIONS.map((q, i) => i).filter(i => navVisible(QUESTIONS[i]));
   const nextStep = from => { const v = visibleList().filter(i => i > from); return v.length ? v[0] + 1 : null; };
 
   history.replaceState({ step: 0 }, '');
@@ -436,7 +414,7 @@ function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selecte
     if (state.submitted) { history.pushState({ step: -1 }, ''); return; }
     closeSheet();
     let s = e.state && typeof e.state.step === 'number' ? e.state.step : 0;
-    while (s > 0 && !qVisible(QUESTIONS[s - 1])) s--;
+    while (s > 0 && !navVisible(QUESTIONS[s - 1])) s--;
     go(s, false);
   });
   function go(step, push = true) {
@@ -541,10 +519,11 @@ function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selecte
   /* ----- 보기 문항 ----- */
   function prefill(q) {
     const a = state.answers[q.id];
+    a.selected = a.selected.filter(k => optVisible(q, q.options[k]));   // 분야를 바꿨으면 안 보이는 제품은 빼기
     if (a.touched) return;
-    const pre = new Set();
-    QUESTIONS.filter(x => x.usage).forEach(u => state.answers[u.id].selected.forEach(k => (u.options[k].pre || []).forEach(p => pre.add(p))));
-    a.selected = q.options.map((o, k) => pre.has(o.key) ? k : -1).filter(k => k > -1);
+    // 고른 분야에 제품이 하나뿐이면 미리 체크
+    const real = q.options.map((o, k) => o.key && optVisible(q, o) ? k : -1).filter(k => k > -1);
+    if (real.length === 1) a.selected = real;
   }
   function countWith(q) {
     const c = qq => state.answers[qq.id].selected.filter(k => !qq.options[k].none).length;
@@ -554,19 +533,20 @@ function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selecte
   function renderQuestion(idx) {
     const q = QUESTIONS[idx];
     if (q.type === 'typing') return renderTyping(idx);
+    if (q.type === 'group') return renderGroup(idx);
     const a = state.answers[q.id];
     if (q.prefill) prefill(q);
     const last = nextStep(idx) === null;
     const kind = q.multi ? 'multi' : 'single';
-    const grid = q.options.length > 5 || q.freeText || q.prefill;
-    const hint = q.hintText || (q.multi ? '여러 개 고를 수 있어요 · Choose all that apply' : '하나만 골라 주세요 · Choose one');
+    const grid = !q.list && (q.options.length > 5 || q.prefill);
+    const hint = !q.options.length ? '' : q.hintText || (q.multi ? '여러 개 고를 수 있어요 · Choose all that apply' : '하나만 골라 주세요 · Choose one');
     shell(`
       <span class="chip">${esc(q.cat[0])} · ${esc(q.cat[1])}</span>
       <h2>${esc(q.title[0])}<span class="en">${esc(q.title[1])}</span></h2>
       ${q.desc ? `<p class="desc">${esc(q.desc)}</p>` : ''}
       ${hint ? `<p class="hint" id="hint">${esc(hint)}</p>` : ''}
-      <div class="options ${grid ? 'grid2' : ''}">
-        ${q.options.map((o, k) => `
+      <div class="options ${grid ? 'grid2' : ''} ${q.list ? 'tight' : ''}">
+        ${q.options.map((o, k) => !optVisible(q, o) ? '' : `
           <button class="opt ${a.selected.includes(k) ? 'on' : ''} ${INFO[o.key] && q.prefill ? 'has-info' : ''}" data-k="${k}" data-kind="${kind}" role="${q.multi ? 'checkbox' : 'radio'}" aria-checked="${a.selected.includes(k)}">
             <span class="mark"></span><span class="txt"><span class="ko">${esc(o.ko || o.label)}</span>${enSpan(o.en)}</span>
             ${INFO[o.key] && q.prefill ? `<span class="info" data-info="${o.key}" aria-label="설명">i</span>` : ''}
@@ -590,7 +570,6 @@ function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selecte
       const info = e.target.closest('.info');
       if (info) { openSheet(info.dataset.info, o.ko || o.label); return; }
       a.touched = true;
-      if (q.usage) { state.answers.product.touched = false; state.answers.product2.touched = false; }
       if (!q.multi) a.selected = [k];
       else if (a.selected.includes(k)) a.selected = a.selected.filter(x => x !== k);
       else if (o.none) a.selected = [k];
@@ -610,12 +589,52 @@ function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selecte
     nextBtn.onclick = () => { if (!nextBtn.disabled) next(idx); };
   }
 
+  /* ----- 한 화면에 작은 질문 2개 ----- */
+  function renderGroup(idx) {
+    const g = QUESTIONS[idx];
+    const parts = g.parts.map(Q).filter(qVisible);
+    const last = nextStep(idx) === null;
+    shell(`
+      <span class="chip">${esc(g.cat[0])} · ${esc(g.cat[1])}</span>
+      <h2>${esc(g.title[0])}<span class="en">${esc(g.title[1])}</span></h2>
+      <p class="hint">모르면 비워 두셔도 돼요 · Skip if not sure</p>
+      ${parts.map(q => `
+        <h3 class="gq">${esc(q.title[0])}${q.multi ? ' <small>(여러 개)</small>' : ''}<span class="en">${esc(q.title[1])}</span></h3>
+        <div class="options grid2">
+          ${q.options.map((o, k) => `
+            <button class="opt ${state.answers[q.id].selected.includes(k) ? 'on' : ''}" data-q="${q.id}" data-k="${k}" data-kind="${q.multi ? 'multi' : 'single'}" role="${q.multi ? 'checkbox' : 'radio'}">
+              <span class="mark"></span><span class="txt"><span class="ko">${esc(o.ko || o.label)}</span>${enSpan(o.en)}</span>
+            </button>`).join('')}
+        </div>`).join('')}`,
+      `<button class="btn ghost" id="prev">${btnLabel(T.back)}</button><button class="btn primary" id="next"></button>`);
+    const nextBtn = document.getElementById('next');
+    const refresh = () => {
+      const any = parts.some(q => state.answers[q.id].selected.length);
+      nextBtn.innerHTML = btnLabel(last ? T.submit : (any ? T.next : T.skip));
+      app.querySelectorAll('.opt').forEach(b => {
+        const on = state.answers[b.dataset.q].selected.includes(+b.dataset.k);
+        b.classList.toggle('on', on); b.setAttribute('aria-checked', on);
+      });
+    };
+    app.querySelectorAll('.opt').forEach(btn => btn.onclick = () => {
+      const q = Q(btn.dataset.q), a = state.answers[q.id], k = +btn.dataset.k;
+      a.touched = true;
+      if (!q.multi) a.selected = a.selected[0] === k ? [] : [k];
+      else if (a.selected.includes(k)) a.selected = a.selected.filter(x => x !== k);
+      else a.selected = [...a.selected, k];
+      refresh();
+    });
+    refresh();
+    document.getElementById('prev').onclick = () => history.back();
+    nextBtn.onclick = () => next(idx);
+  }
+
   /* ----- 결과 만들기 (삼전용 / 간토용, 한국어로 저장) ----- */
   function labels(q, Tg) {
     const a = state.answers[q.id], out = [];
     a.selected.slice().sort((x, y) => x - y).forEach(k => {
       const o = q.options[k];
-      if (o.only && o.only !== Tg) return;
+      if ((o.only && o.only !== Tg) || !optVisible(q, o)) return;
       const l = typeof o[Tg] === 'string' ? o[Tg] : o.label;
       if (!out.includes(l)) out.push(l);
     });
@@ -639,15 +658,15 @@ function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selecte
       const vis = qVisible(q), a = state.answers[q.id];
       if (q.usageCol && Tg === 'S') {
         const p = (out[q.usageCol] || '').split(', ').filter(Boolean);
-        a.selected.forEach(k => { const v = q.options[k].purpose; if (v && !p.includes(v)) p.push(v); });
+        a.selected.forEach(k => (q.options[k].purpose || []).forEach(v => { if (!p.includes(v)) p.push(v); }));
         out[q.usageCol] = p.join(', ');
       }
       if (q[Tg]) put(out, q[Tg], vis ? labels(q, Tg).join(', ') : '');
-      if (Tg === 'K' && q.kFlag) out[q.kFlag] = !a.selected.length ? '' : (labels(q, 'K').length ? '예' : '아니오');
+      if (Tg === 'K' && q.kFlag) out[q.kFlag] = !vis || !a.selected.length ? '' : (labels(q, 'K').length ? '예' : '아니오');
       if (q.freeText && a.free.trim() && q[Tg]) put(out, q[Tg], '의견: ' + a.free.trim());
     });
     if (Tg === 'S') {
-      const consult = state.answers.usage2.selected.some(k => Q('usage2').options[k].consult);
+      const consult = state.answers.cat.selected.some(k => Q('cat').options[k].consult);
       out['상담 필요'] = consult ? 'Y' : '';
       out['개인정보 수집·이용 동의'] = state.consent ? 'Y' : 'N';
     }
@@ -656,7 +675,7 @@ function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selecte
   window.__buildFor = buildFor;
 
   function submit() {
-    send({ sid: state.sid, samchun: buildFor('S') });
+    send({ sid: state.sid, samchun: buildFor('S'), kanto: buildFor('K') });
   }
   function renderSending() { shell(`<div class="center"><div class="spinner"></div><h2>제출 중입니다<span class="en">Submitting…</span></h2></div>`, ''); }
   function renderDone() {
@@ -680,7 +699,7 @@ function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selecte
   async function send(payload) {
     renderSending();
     if (DEMO) {
-      console.log('[테스트 모드] 삼전용', JSON.stringify(payload.samchun));
+      console.log('[테스트 모드] 삼전용', JSON.stringify(payload.samchun)); console.log('[테스트 모드] 간토용', JSON.stringify(payload.kanto));
       await new Promise(r => setTimeout(r, 500)); return finish();
     }
     for (let i = 0; i < 3; i++) {
