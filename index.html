@@ -284,7 +284,7 @@ const QUESTIONS = [
       {key:'raw',   label:'원료·벌크 (식각액·슬러리 원료 등)', ko:'원료·벌크', en:'Raw materials · Bulk', purpose:['식각액·세정액 제조 원료','소재 합성·배합']},
       {key:'unsure',label:'잘 모르겠어요 · 상담 원해요', ko:'잘 모르겠어요', en:'Not sure — please advise', consult:true, purpose:['기타']} ]},
 
-  { id:'product', multi:true, prefill:true, cat:['관심 제품','Products'], showIf: () => CATS.some(catOn),
+  { id:'product', multi:true, prefill:true, cat:['관심 제품','Products'], showIf: () => realProducts().length > 1,   // 고른 분야에 제품이 하나뿐이면 이 화면은 건너뛰고 자동 선택
     title:['관심 있는 제품을 골라 주세요','Products you are interested in'],
     hintText:'여러 개 가능 · ⓘ 누르면 설명 · Tap ⓘ for info',
     S:'3. 관심 제품', K:'3. 관심 제품',
@@ -320,9 +320,9 @@ const QUESTIONS = [
     S:'6. 중요 조건 (최대 3개)', K:'6. 고순도 시약 요구 사항',
     options:[
       {only:'S', label:'제품 규격 (등급·농도)', ko:'제품 규격', en:'Grade · Concentration'},
-      {label:'금속 불순물 수준', ko:'금속 불순물', en:'Metal impurities', K:'금속 불순물 수준 (ppm / ppb / ppt)'},
-      {only:'S', label:'수분 함량', en:'Moisture'},
-      {only:'S', label:'입자·증발잔류물', ko:'입자·잔류물', en:'Particles · Residue'},
+      {label:'금속 불순물 수준', ko:'금속 불순물', en:'Metal impurities', cats:['semi','lab','raw'], K:'금속 불순물 수준 (ppm / ppb / ppt)'},
+      {only:'S', label:'수분 함량', en:'Moisture', cats:['semi','lab']},
+      {only:'S', label:'입자·증발잔류물', ko:'입자·잔류물', en:'Particles · Residue', cats:['semi']},
       {label:'로트 간 일관성', en:'Lot consistency', K:'로트 간 안정성'},
       {label:'COA 기재 항목', en:'COA items'},
       {label:'안정적 공급', en:'Stable supply'}, {label:'가격', en:'Price'}, {label:'단납기', en:'Short lead time'},
@@ -330,10 +330,10 @@ const QUESTIONS = [
 
   /* ---------- 여기부터는 구매·도입 검토 중인 분만 ---------- */
   { id:'gGrade', type:'group', title:['제품 등급을 알려 주세요','About grade'], cat:['등급','Grade'], parts:['curGrade','needGrade'] },
-  { id:'curGrade', part:true, title:['지금 쓰는 등급','Grade you use now'], S:'4. 현재 사용 제품 등급', showIf: () => using(),
-    options:[ {label:'EL'}, {label:'ELH'}, {label:'HPLC·LC-MS', ko:'HPLC·LC-MS'}, {label:'GR (시약급)', ko:'GR 시약급'}, {label:'CP·EP (공업용)', ko:'공업용'}, {label:'잘 모름', en:'Not sure'} ]},
-  { id:'needGrade', part:true, title:['필요한 등급','Grade you need'], S:'5. 필요 등급·농도', showIf: () => buyer(),
-    options:[ {label:'EL'}, {label:'ELH'}, {label:'HPLC'}, {label:'LC-MS'}, {label:'원료·공업용', en:'Industrial'}, {label:'별도 협의', en:'To discuss'} ]},
+  { id:'curGrade', part:true, title:['지금 쓰는 등급','Grade you use now'], S:'4. 현재 사용 제품 등급', showIf: () => using() && ['semi','lab','raw','env'].some(catOn),
+    options:[ {label:'EL', cats:['semi','lab','raw']}, {label:'ELH', cats:['semi','lab','raw']}, {label:'HPLC·LC-MS', ko:'HPLC·LC-MS', cats:['lab']}, {label:'GR (시약급)', ko:'GR 시약급', cats:['lab','env']}, {label:'CP·EP (공업용)', ko:'공업용', cats:['raw']}, {label:'잘 모름', en:'Not sure'} ]},
+  { id:'needGrade', part:true, title:['필요한 등급','Grade you need'], S:'5. 필요 등급·농도', showIf: () => buyer() && ['semi','lab','raw'].some(catOn),
+    options:[ {label:'EL', cats:['semi','lab','raw']}, {label:'ELH', cats:['semi','lab','raw']}, {label:'HPLC', cats:['lab']}, {label:'LC-MS', cats:['lab']}, {label:'원료·공업용', en:'Industrial', cats:['raw','semi']}, {label:'별도 협의', en:'To discuss'} ]},
 
   { id:'gPlan', type:'group', title:['구매 계획을 알려 주세요','Your purchase plan'], cat:['구매 계획','Purchase plan'], parts:['scale','timing'] },
   { id:'scale', part:true, title:['사용 규모','Scale of use'], S:'5. 사용 규모', showIf: () => buyer(),
@@ -369,8 +369,8 @@ const QUESTIONS = [
     S:'7. 맞춤 대응 요청', K:'7. 특주품 관심 항목', kFlag:'7. 특주품 관심 여부', showIf: () => buyer(),
     options:[
       {label:'농도 조정', en:'Concentration'},
-      {only:'S', label:'혼합액·배합액', en:'Mixtures · Blends'}, {label:'포장·용량 변경', en:'Package · Volume', K:'용량 변경'},
-      {label:'특수 포장', en:'Special packaging'}, {label:'추가 분석·규격 협의', ko:'추가 분석·규격', en:'Extra analysis · Specs', K:'금속 불순물 추가 규격 대응'},
+      {only:'S', label:'혼합액·배합액', en:'Mixtures · Blends', cats:['semi','raw','clean']}, {label:'포장·용량 변경', en:'Package · Volume', K:'용량 변경'},
+      {label:'특수 포장', en:'Special packaging'}, {label:'추가 분석·규격 협의', ko:'추가 분석·규격', en:'Extra analysis · Specs', K:'금속 불순물 추가 규격 대응', cats:['semi','lab','raw']},
       {only:'S', label:'대량·정기 공급', en:'Bulk · Regular supply'}, {label:'해당 없음', en:'None', none:true, only:'S'} ]},
 
   /* ---------- 다시 모두 ---------- */
@@ -412,6 +412,7 @@ QUESTIONS.forEach(q => state.answers[q.id] = { selected: [], touched: false, fre
 const Q = id => QUESTIONS.find(x => x.id === id);
 function hasReal(qid) { const q = Q(qid); return state.answers[qid].selected.some(k => !q.options[k].none); }
 const optVisible = (q, o) => !o.cats || o.cats.some(catOn);
+const realProducts = () => { const q = Q('product'); return q.options.map((o, k) => o.key && optVisible(q, o) ? k : -1).filter(k => k > -1); };
 function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selected.some(k => keys.includes(q.options[k].key) && optVisible(q, q.options[k])); }
 
 (function(){
@@ -603,6 +604,7 @@ function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selecte
         }
         a.selected = [...a.selected.filter(x => !q.options[x].none), k];
       }
+      if (q.id === 'cat') prefill(Q('product'));
       paint(); refresh();
     });
     const free = document.getElementById('free');
@@ -622,8 +624,8 @@ function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selecte
       <h2>${esc(g.title[0])}<span class="en">${esc(g.title[1])}</span></h2>
       ${parts.map(q => `
         <h3 class="gq">${esc(q.title[0])}${q.multi ? ' <small>(여러 개)</small>' : ''}<span class="en">${esc(q.title[1])}</span></h3>
-        <div class="options ${q.options.length === 4 || q.options.length === 2 ? 'grid2' : 'grid3'}">
-          ${q.options.map((o, k) => `
+        <div class="options ${[2, 4].includes(q.options.filter(o => optVisible(q, o)).length) ? 'grid2' : 'grid3'}">
+          ${q.options.map((o, k) => !optVisible(q, o) ? '' : `
             <button class="opt ${state.answers[q.id].selected.includes(k) ? 'on' : ''}" data-q="${q.id}" data-k="${k}" data-kind="${q.multi ? 'multi' : 'single'}" role="${q.multi ? 'checkbox' : 'radio'}">
               <span class="mark"></span><span class="txt"><span class="ko">${esc(o.ko || o.label)}</span>${enSpan(o.en)}</span>
             </button>`).join('')}
@@ -677,7 +679,7 @@ function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selecte
     }
     QUESTIONS.forEach(q => {
       if (!q.options) return;
-      const vis = qVisible(q), a = state.answers[q.id];
+      const vis = q.id === 'product' || qVisible(q), a = state.answers[q.id];
       if (q.usageCol && Tg === 'S') {
         const p = (out[q.usageCol] || '').split(', ').filter(Boolean);
         a.selected.forEach(k => (q.options[k].purpose || []).forEach(v => { if (!p.includes(v)) p.push(v); }));
