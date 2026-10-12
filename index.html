@@ -86,7 +86,7 @@
   /* 보기 버튼 */
   .hint{font-size:14px;color:var(--muted);margin:-6px 0 10px;font-weight:600}
   .hint.warn{color:var(--error)}
-  .gq{font-size:18px;font-weight:800;margin:16px 0 8px;line-height:1.3}
+  .gq{font-size:17px;font-weight:800;margin:12px 0 7px;line-height:1.25}
   .gq small{font-size:13px;color:var(--muted);font-weight:600}
   .gq .en{display:block;font-size:13.5px;color:var(--muted);font-weight:600}
   .options{display:flex;flex-direction:column;gap:8px}
@@ -100,8 +100,31 @@
   .opt.on{border-color:var(--accent);background:var(--accent-soft)}
   .opt.on .mark{border-color:var(--accent);background:var(--accent)}
   .opt.on .mark::after{content:"";width:6px;height:11px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
-  .options.tight{gap:7px}
-  .tight .opt{min-height:52px;padding:8px 14px}
+  .options.tight{gap:6px}
+  .tight .opt{min-height:50px;padding:7px 14px}
+  @media (max-height:640px){
+    .wrap{padding-top:8px}
+    h2{font-size:20px;margin:6px 0 8px}
+    .options:not(.grid2):not(.grid3):not(.tight){display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .opt{min-height:48px;padding:8px 12px}
+    .tight .opt{min-height:44px;padding:5px 12px}
+    .grid2 .opt,.grid3 .opt{min-height:46px;padding-top:7px;padding-bottom:6px}
+    .gq{margin:8px 0 5px;font-size:16px}
+    .options.tight{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+    .tight .opt{align-items:flex-start;gap:8px;padding:7px 10px;border-radius:12px}
+    .tight .opt .ko{font-size:16px}
+    .grid3 .opt .en{display:none}
+    .grid3 .opt.has-info .txt{padding-bottom:16px}
+  }
+  .options.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .grid3 .opt{padding:9px 8px 8px;min-height:52px;border-radius:12px;align-items:flex-start;gap:0}
+  .grid3 .opt .mark{position:absolute;top:6px;right:6px;width:17px;height:17px}
+  .grid3 .opt.on .mark::after{width:4px;height:8px;border-width:0 2px 2px 0}
+  .grid3 .opt .txt{padding-right:16px}
+  .grid3 .opt .ko{font-size:15.5px;line-height:1.25}
+  .grid3 .opt .en{font-size:12px}
+  .grid3 .opt .info{position:absolute;right:5px;bottom:5px;width:22px;height:22px;font-size:12px;line-height:18px}
+  .grid3 .opt.has-info .txt{padding-bottom:14px}
   .options.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .grid2 .opt{padding:8px 10px;gap:8px;min-height:56px;align-items:flex-start;border-radius:12px}
   .grid2 .opt .mark{width:21px;height:21px;margin-top:2px}
@@ -228,7 +251,7 @@ const INFO = {
    group: 한 화면에 작은 질문 2개 / part: 그 묶음 안에 들어가는 질문
    보기의 only:'S'|'K' = 그 회사 결과표에만 / S:'..' K:'..' = 그 회사 설문지 표현으로 저장 */
 const CATS = ['semi','clean','lab','env','raw'];
-const catOn = c => { const q = Q('cat'); return state.answers.cat.selected.some(k => q.options[k].key === c || q.options[k].key === 'unsure'); };
+const catOn = c => { const q = Q('cat'); return state.answers.cat.selected.some(k => q.options[k].key === c); };
 const buyer = () => { const s = state.answers.status.selected; return s.length > 0 && s[0] !== 3; };   // 3 = 정보 수집 단계
 const using = () => { const s = state.answers.status.selected; return s[0] === 0 || s[0] === 1; };
 
@@ -261,20 +284,20 @@ const QUESTIONS = [
       {key:'raw',   label:'원료·벌크 (식각액·슬러리 원료 등)', ko:'원료·벌크', en:'Raw materials · Bulk', purpose:['식각액·세정액 제조 원료','소재 합성·배합']},
       {key:'unsure',label:'잘 모르겠어요 · 상담 원해요', ko:'잘 모르겠어요', en:'Not sure — please advise', consult:true, purpose:['기타']} ]},
 
-  { id:'product', multi:true, prefill:true, cat:['관심 제품','Products'],
+  { id:'product', multi:true, prefill:true, cat:['관심 제품','Products'], showIf: () => CATS.some(catOn),
     title:['관심 있는 제품을 골라 주세요','Products you are interested in'],
-    desc:'고르신 분야의 제품만 보여드려요 · ⓘ 설명 보기',
+    hintText:'여러 개 가능 · ⓘ 누르면 설명 · Tap ⓘ for info',
     S:'3. 관심 제품', K:'3. 관심 제품',
     options:[
-      {key:'solvent',   cats:['semi','lab'],  label:'고순도 용제 EL·ELH Grade', ko:'고순도 용제 EL·ELH', en:'High-purity solvents', K:'고순도 용매'},
-      {key:'dsp',       cats:['semi'],        label:'DSP (황산, 과수, 불산)', ko:'DSP', en:'H₂SO₄ · H₂O₂ · HF', only:'S'},
-      {key:'etch',      cats:['semi','raw'],  label:'식각·불화계·산·알칼리', ko:'식각·산·알칼리', en:'Etchants · Acids', K:'고순도 알칼리 (KOH, NaOH)'},
-      {key:'clean',     cats:['clean'],       label:'클린룸 세정제', en:'Cleanroom cleaners', only:'S'},
-      {key:'icpacid',   cats:['lab'],         label:'고순도 ICP/MS 분석용 Acid, Alkali', ko:'ICP/MS 분석용 산·알칼리', en:'Ultra-pure acids · alkalis', K:'Ultrapur / Ultrapur-100'},
+      {key:'solvent',   cats:['semi','lab'],  label:'고순도 용제 EL·ELH Grade', ko:'EL·ELH 용제', en:'High-purity solvents', K:'고순도 용매'},
+      {key:'dsp',       cats:['semi'],        label:'DSP (황산, 과수, 불산)', ko:'DSP', en:'H₂SO₄·H₂O₂·HF', only:'S'},
+      {key:'etch',      cats:['semi','raw'],  label:'식각·불화계·산·알칼리', ko:'식각·산·알칼리', en:'Etchants', K:'고순도 알칼리 (KOH, NaOH)'},
+      {key:'clean',     cats:['clean'],       label:'클린룸 세정제', ko:'세정제', en:'Cleanroom cleaners', only:'S'},
+      {key:'icpacid',   cats:['lab'],         label:'고순도 ICP/MS 분석용 Acid, Alkali', ko:'ICP 분석용 산', en:'Ultra-pure acids', K:'Ultrapur / Ultrapur-100'},
       {key:'anhydrous', cats:['lab'],         label:'Anhydrous Solvent', ko:'탈수 용매', en:'Anhydrous solvents', K:'탈수 용매'},
-      {key:'hplc',      cats:['lab'],         label:'HPLC·LC-MS 분석용 용매', ko:'HPLC·LC-MS 용매', en:'HPLC solvents', only:'S'},
-      {key:'std',       cats:['lab','env'],   label:'적정용 표준용액 및 pH 완충표준액', ko:'표준용액·pH 표준액', en:'Standard · pH buffer', only:'S'},
-      {key:'bulk',      cats:['raw'],         label:'고체·액상 원료 및 공업용 용제 Bulk', ko:'원료·공업용 용제', en:'Bulk raw materials', only:'S'},
+      {key:'hplc',      cats:['lab'],         label:'HPLC·LC-MS 분석용 용매', ko:'HPLC 용매', en:'HPLC · LC-MS', only:'S'},
+      {key:'std',       cats:['lab','env'],   label:'적정용 표준용액 및 pH 완충표준액', ko:'표준액·pH', en:'Standards · pH', only:'S'},
+      {key:'bulk',      cats:['raw'],         label:'고체·액상 원료 및 공업용 용제 Bulk', ko:'원료·벌크', en:'Bulk materials', only:'S'},
       {label:'기타', en:'Other'} ]},
 
   { id:'icpCount', cat:['분석 장비','Instruments'], title:['ICP 분석 장비는 몇 대 있나요?','How many ICP instruments?'],
@@ -292,7 +315,7 @@ const QUESTIONS = [
               {label:'Thermo Fisher'}, {label:'Honeywell'}, {label:'Kanto Chemical'},
               {label:'Tama Pure Chemical', ko:'Tama'}, {label:'Fujifilm Wako'}, {label:'LabChem'}, {label:'기타', en:'Other'} ]},
 
-  { id:'require', multi:true, max:3, cat:['요구 사항','Requirements'],
+  { id:'require', multi:true, max:3, cols:3, cat:['요구 사항','Requirements'],
     title:['가장 중요한 조건은?','What matters most?'], hintText:'3개까지 골라 주세요 · Up to 3',
     S:'6. 중요 조건 (최대 3개)', K:'6. 고순도 시약 요구 사항',
     options:[
@@ -545,7 +568,7 @@ function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selecte
       <h2>${esc(q.title[0])}<span class="en">${esc(q.title[1])}</span></h2>
       ${q.desc ? `<p class="desc">${esc(q.desc)}</p>` : ''}
       ${hint ? `<p class="hint" id="hint">${esc(hint)}</p>` : ''}
-      <div class="options ${grid ? 'grid2' : ''} ${q.list ? 'tight' : ''}">
+      <div class="options ${q.cols === 3 || q.options.filter(o => optVisible(q, o)).length > 8 ? 'grid3' : grid ? 'grid2' : ''} ${q.list ? 'tight' : ''}">
         ${q.options.map((o, k) => !optVisible(q, o) ? '' : `
           <button class="opt ${a.selected.includes(k) ? 'on' : ''} ${INFO[o.key] && q.prefill ? 'has-info' : ''}" data-k="${k}" data-kind="${kind}" role="${q.multi ? 'checkbox' : 'radio'}" aria-checked="${a.selected.includes(k)}">
             <span class="mark"></span><span class="txt"><span class="ko">${esc(o.ko || o.label)}</span>${enSpan(o.en)}</span>
@@ -597,10 +620,9 @@ function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selecte
     shell(`
       <span class="chip">${esc(g.cat[0])} · ${esc(g.cat[1])}</span>
       <h2>${esc(g.title[0])}<span class="en">${esc(g.title[1])}</span></h2>
-      <p class="hint">모르면 비워 두셔도 돼요 · Skip if not sure</p>
       ${parts.map(q => `
         <h3 class="gq">${esc(q.title[0])}${q.multi ? ' <small>(여러 개)</small>' : ''}<span class="en">${esc(q.title[1])}</span></h3>
-        <div class="options grid2">
+        <div class="options ${q.options.length === 4 || q.options.length === 2 ? 'grid2' : 'grid3'}">
           ${q.options.map((o, k) => `
             <button class="opt ${state.answers[q.id].selected.includes(k) ? 'on' : ''}" data-q="${q.id}" data-k="${k}" data-kind="${q.multi ? 'multi' : 'single'}" role="${q.multi ? 'checkbox' : 'radio'}">
               <span class="mark"></span><span class="txt"><span class="ko">${esc(o.ko || o.label)}</span>${enSpan(o.en)}</span>
