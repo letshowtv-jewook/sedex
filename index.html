@@ -258,7 +258,7 @@ const using = () => { const s = state.answers.status.selected; return s[0] === 0
 const QUESTIONS = [
   { id:'typing', type:'typing' },
 
-  { id:'type', cat:['고객 정보','About you'], title:['회사 유형을 선택해 주세요','Type of company'], S:'1. 회사 유형', K:'1. 회사 유형', required:true,
+  { id:'type', multi:true, cat:['고객 정보','About you'], title:['회사 유형을 선택해 주세요','Type of company'], S:'1. 회사 유형', K:'1. 회사 유형', required:true,
     options:[ {label:'반도체 제조', en:'Semiconductor'}, {label:'화학소재 제조', en:'Chemical materials'},
               {label:'장비 및 부품', en:'Equipment · Parts'}, {label:'패키징 및 테스트', en:'Packaging · Test'},
               {label:'연구기관 및 대학', en:'Research · University'}, {label:'유통', en:'Distribution'}, {label:'기타', en:'Other'} ]},
