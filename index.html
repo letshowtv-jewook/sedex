@@ -583,7 +583,7 @@ function hasAny(qid, keys) { const q = Q(qid); return state.answers[qid].selecte
       const ok = a.selected.length > 0 || (q.freeText && a.free.trim());
       const req = q.required || (q.requiredIfEmpty && !state.answers[q.requiredIfEmpty].selected.length);
       nextBtn.disabled = req && !ok;
-      nextBtn.innerHTML = btnLabel(last ? T.submit : (req || ok ? T.next : T.skip));
+      nextBtn.innerHTML = btnLabel(nextStep(idx) === null ? T.submit : (req || ok ? T.next : T.skip));
     };
     const paint = () => app.querySelectorAll('.opt').forEach(b => {
       const on = a.selected.includes(+b.dataset.k); b.classList.toggle('on', on); b.setAttribute('aria-checked', on);
